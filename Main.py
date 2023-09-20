@@ -176,9 +176,9 @@ def BuildingGUI():
     # Insert data into the Treeview
     parent_item = tree.insert("", "end", text="Amazon Devices & Accessories")
     child_0 = tree.insert(parent_item, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories/zgbs/amazon-devices/ref=zg_bs_nav_amazon-devices_0")
-    child_1 = tree.insert(parent_item, "end", text="Amazon Device Accessories", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Accessories/zgbs/amazon-devices/370783011/ref=zg_bs_nav_amazon-devices_1")
-    tree.insert(child_1, "end", text="All")
-    tree.insert(child_1, "end", text="Adapters & Connectors")
+    child_1 = tree.insert(parent_item, "end", text="Amazon Device Accessories")
+    tree.insert(child_1, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Accessories/zgbs/amazon-devices/370783011/ref=zg_bs_nav_amazon-devices_1")
+    tree.insert(child_1, "end", text="Adapters & Connectors", tag="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Adapters-Connectors/zgbs/amazon-devices/17942903011/ref=zg_bs_nav_amazon-devices_2_370783011")
     tree.insert(child_1, "end", text="Audio")
     tree.insert(child_1, "end", text="Bases & Stands")
     tree.insert(child_1, "end", text="Charging Docks")
@@ -869,42 +869,22 @@ def BuildingGUI():
 
 
     start_img = PhotoImage(file=relative_to_assets("start.png"))
-    # start_btn = Button(
-    #     image=start_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : handle_btn_press("start"),activebackground= "#202020")
     start_btn = Button(
         image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : scrape_site(), activebackground= "#202020")
     start_btn.place(x=75, y=720, width=100, height=47)
 
-    stop_img = PhotoImage(file=relative_to_assets("stop.png"))
-    # stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : handle_btn_press("stop"),activebackground= "#202020", state="disabled")
+    stop_img = PhotoImage(file=relative_to_assets("stop.png"))    
     stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
     stop_btn.place(x=325, y=720, width=100, height=47)
 
-    Display_img = PhotoImage(file=relative_to_assets("result.png"))
-    # Display_btn = Button(image=Display_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : handle_btn_press("stop"),activebackground= "#202020", state="disabled")
+    Display_img = PhotoImage(file=relative_to_assets("result.png"))    
     Display_btn = Button(image=Display_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
     Display_btn.place(x=575, y=720, width=100, height=47)
 
-    Import_img = PhotoImage(file=relative_to_assets("import.png"))
-    # stop_btn = Button(image=Import_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : handle_btn_press("stop"),activebackground= "#202020", state="disabled")
+    Import_img = PhotoImage(file=relative_to_assets("import.png"))    
     Import_btn = Button(image=Import_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
     Import_btn.place(x=825, y=720, width=100, height=47)
-
-    # IP_address1_entry.insert(0, "1632 Scholar Dr")
-    # PORT1_entry.insert(0, "Lawrenceville")
-    # USERNAME1_entry.insert(0, "GA")
-    # PASSWORD1_entry.insert(0, "202-337-1412")
-
-    # IP_address2_entry.insert(0, "605 Saint Lawrence Blvd")
-    # PORT2_entry.insert(0, "Eastlake")
-    # USERNAME2_entry.insert(0, "OH")
-    # PASSWORD2_entry.insert(0, "202-337-1412")
-
-    # IP_address3_entry.insert(0, "203 Magnolia St")
-    # PORT3_entry.insert(0, "Siloam Springs")
-    # USERNAME3_entry.insert(0, "AR")
-    # PASSWORD3_entry.insert(0, "202-337-1412")
-
+    
     window.resizable(False, False)
     # Run the main event loop to display the window
     window.mainloop()
