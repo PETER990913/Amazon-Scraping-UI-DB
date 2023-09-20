@@ -4,6 +4,114 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from pathlib import Path
 
+
+# Initializing the global variants
+
+item_text = ""
+item_link = ""
+
+# defining the Scrape function
+
+def scrape_site():    
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import Select
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    import undetected_chromedriver as uc
+    from webdriver_manager.chrome import ChromeDriverManager
+    import pandas as pd
+    import time
+    import re
+    Product_title_list = []
+    Product_image_URL_list = []
+    Product_brand_list = []
+    Product_Rate_list = []
+    Product_Rating_list = []
+    Product_price_list = []
+    Product_tables_class_name = 'zg-grid-general-faceout'
+    Product_title_XPATH = '//*[@id="productTitle"]'
+    Product_image_URL_XPATH = '//*[@id="landingImage"]'
+    Product_brand_XPATH = '//*[@id="bylineInfo"]'
+    Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
+    Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'
+    Product_price_XPATH = '//*[@id="corePrice_desktop"]/div/table/tbody/tr/td[2]/span[1]/span[2]'
+    Next_page_XPATH = '//*[@id="CardInstanceVCC9iK3UsqjMrhI_ELT2fA"]/div[2]/div[2]/ul/li[4]'
+    print("link", item_link[0])
+    print('--------------------Automation scraping is successfully started-------------------')
+    driver = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
+    driver.maximize_window()
+    URL = item_link[0]
+    driver.get(URL)  
+    j = 0    
+    while j<2:
+        tables = driver.find_elements(By.CLASS_NAME, Product_tables_class_name)
+        print(len(tables))
+        for table in tables:
+            try:
+                Product_URL = table.find_elements(By.TAG_NAME, 'a')[0].get_attribute('href')
+            except:
+                Product_URL = "none"
+            print("Product_image_URL", Product_URL)
+            driver1 = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
+            driver1.maximize_window()
+            driver1.get(Product_URL)  
+            try:
+                Product_title = driver1.find_element(By.XPATH, Product_title_XPATH).text
+            except:
+                Product_title = "none"
+            Product_title_list.append(Product_title)
+            print("Product_title:", Product_title)
+            try:
+                Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
+            except:
+                Product_image_URL = "none"
+            Product_image_URL_list.append(Product_image_URL)
+            print("Product_image_URL:", Product_image_URL)
+            try:
+                Product_brand = driver1.find_element(By.XPATH, Product_brand_XPATH).text
+            except:
+                Product_brand = "none"
+            Product_brand = str(Product_brand).replace('Brand:', '').replace(' ', '')
+            Product_brand_list.append(Product_brand)
+            print("Product_brand:", Product_brand)
+            try:
+                Product_Rate = driver1.find_element(By.XPATH, Product_Rate_XPATH).text
+            except:
+                Product_Rate = "none"
+            Product_Rate_list.append(Product_Rate)
+            print("Product_Rate:", Product_Rate)
+            try:
+                Product_Rating = driver1.find_element(By.XPATH, Product_Rating_XPATH).text
+            except:
+                Product_Rating = "none"
+            Product_Rating = str(Product_Rating).replace('ratings', '').replace(' ', '')
+            Product_Rating_list.append(Product_Rating)
+            print("Product_Rating:", Product_Rating)
+            try:
+                Product_price = driver1.find_element(By.XPATH, Product_price_XPATH).text
+            except:
+                Product_price = "none"
+            Product_price_list.append(Product_price)
+            print("Product_price:", Product_price)
+            driver1.close()   
+        j += 1
+        try:
+            driver.find_element(By.XPATH, Next_page_XPATH).click()
+        except:
+            print("can't find the next button anymore")  
+    print('--------------------Automation scraping is successfully finished--------------------')   
+    # Saving as EXCEL file
+    dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,
+            'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list}
+    df = pd.DataFrame(dict)
+    df.to_csv('Result.csv') 
+    print('---------------------------Saving result as an Excel--------------------------------')
+    
+# defining the building GUI function
+
 def BuildingGUI():
     # Create a window object
     OUTPUT_PATH = Path(__file__).parent
@@ -55,21 +163,20 @@ def BuildingGUI():
 
     # Configure the scrollbar to work with the Treeview
     vscrollbar.config(command=tree.yview)
-    
-    
+        
     # Getting the treeview text when it's selected
     def on_select(event):
+        global item_link, item_text
         selected_item = tree.selection()[0]
         item_text = tree.item(selected_item)['text']
         item_link = tree.item(selected_item)['tags']
-        # return item_text, item_link
-        print(item_text)
-        print(item_link)    
+        # scrape_site(item_link)
+        # return item_text, item_link   
     
     # Insert data into the Treeview
-    parent_item = tree.insert("", "end", text="Amazon Devices & Accessories", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories/zgbs/amazon-devices/ref=zg_bs_nav_amazon-devices_0")
-    child_0 = tree.insert(parent_item, "end", text="All")
-    child_1 = tree.insert(parent_item, "end", text="Amazon Device Accessories")
+    parent_item = tree.insert("", "end", text="Amazon Devices & Accessories")
+    child_0 = tree.insert(parent_item, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories/zgbs/amazon-devices/ref=zg_bs_nav_amazon-devices_0")
+    child_1 = tree.insert(parent_item, "end", text="Amazon Device Accessories", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Accessories/zgbs/amazon-devices/370783011/ref=zg_bs_nav_amazon-devices_1")
     tree.insert(child_1, "end", text="All")
     tree.insert(child_1, "end", text="Adapters & Connectors")
     tree.insert(child_1, "end", text="Audio")
@@ -765,7 +872,7 @@ def BuildingGUI():
     # start_btn = Button(
     #     image=start_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : handle_btn_press("start"),activebackground= "#202020")
     start_btn = Button(
-        image=start_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
+        image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : scrape_site(), activebackground= "#202020")
     start_btn.place(x=75, y=720, width=100, height=47)
 
     stop_img = PhotoImage(file=relative_to_assets("stop.png"))
@@ -802,3 +909,6 @@ def BuildingGUI():
     # Run the main event loop to display the window
     window.mainloop()
 BuildingGUI()
+
+
+        

@@ -1,17 +1,30 @@
+import sys
 import tkinter as tk
-from tkinter import ttk
-
-def on_select(event):
-    selected_item = tree.selection()[0]
-    item_text = tree.item(selected_item)['text']
-    print(item_text)
+from contextlib import redirect_stdout
+from io import StringIO
 
 root = tk.Tk()
 
-tree = ttk.Treeview(root)
-tree.insert("", "0", "item1", text="Item 1")
-tree.insert("item1", "0", "subitem1", text="Subitem 1")
-tree.bind("<<TreeviewSelect>>", on_select)
-tree.pack()
+console_output = StringIO()
+with redirect_stdout(console_output):
+    print("Hello, world!")
+    print("This is a test.")
+
+console_text = console_output.getvalue()
+
+console_entry = tk.Entry(
+    bd=0,
+    bg="#ebe6e6",
+    fg="#000000",
+    highlightthickness=0
+)
+console_entry.place(
+    x=219.0,
+    y=525,
+    width=781.0,
+    height=100.0
+)
+
+console_entry.insert(tk.END, console_text)
 
 root.mainloop()
