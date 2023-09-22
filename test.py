@@ -1,49 +1,56 @@
-from tkinter import Canvas, Entry, Text,  Button, PhotoImage,filedialog,END,Variable,messagebox
-import tkinter as tk
-from tkinter import ttk
-from tkinter.filedialog import askopenfilename
-from pathlib import Path
-from io import StringIO
-from contextlib import redirect_stdout
-console_output = StringIO()
-with redirect_stdout(console_output):
-    OUTPUT_PATH = Path(__file__).parent
-    ASSETS_PATH = OUTPUT_PATH / Path("assets/")
-    def relative_to_assets(path: str) -> Path:
-        return ASSETS_PATH / Path(path)
+from seleniumwire import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import undetected_chromedriver as uc
+from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
+import time
+import re
 
-    window = tk.Tk()
-    window.title("Crawler")
-    window.geometry("+500+100")
-    window.geometry("1000x800")
-    window.configure(bg = "#202020")
-    canvas = Canvas(
-        window,
-        bg = "#FFFFFF",
-        height = 800,
-        width = 1000,
-        bd = 0,
-        highlightthickness = 0,
-        relief = "ridge"
-    )
-    canvas.place(x = 0, y = 0)
-    console_entry = Entry(
-            bd=0,
-            bg="#ebe6e6",
-            fg="#000000",
-            highlightthickness=0
-        )
+SCRAPEOPS_API_KEY = '8e34199a-c66a-4d97-ab7d-2d0b48764a87'
 
-    console_entry.place(
-        x=219.0,
-        y=525,
-        width=781.0,
-        height=100.0
-    )
-    print('---------------------------')
-    print('++++++++++++++++++++++++')
-    console_text = console_output.getvalue()
-    console_entry.insert(tk.END, console_text)
-    window.resizable(False, False)
-    # Run the main event loop to display the window
-    window.mainloop()
+proxy_options = {
+    'proxy': {
+        'http': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+        'https': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+        'no_proxy': 'localhost:127.0.0.1'
+    }
+}
+
+Product_title_list = []
+Product_image_URL_list = []
+Product_brand_list = []
+Product_Rate_list = []
+Product_Rating_list = []
+Product_price_list = []
+Product_tables_class_name = 'zg-grid-general-faceout'
+Product_image_URL_XPATH = '//*[@id="landingImage"]'
+Product_brand_XPATH = '//*[@id="bylineInfo"]'
+Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
+Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
+Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
+Product_price_Class2 = 'p13n-sc-price'
+Next_page_XPATH = '//*[@id="CardInstanceVCC9iK3UsqjMrhI_ELT2fA"]/div[2]/div[2]/ul/li[4]'
+# print("link", item_link[0])
+print('--------------------Automation scraping is successfully started-------------------')
+options = webdriver.ChromeOptions()
+options.add_argument('--proxy-server=http://proxy.scrapeops.io:5353')
+options.add_argument('--disable-extensions')
+options.add_argument('--disable-gpu')
+options.add_argument('--no-sandbox')
+
+## Set Up Selenium Chrome driver
+driver = webdriver.Chrome(ChromeDriverManager().install(), options=options, seleniumwire_options=proxy_options)
+driver.maximize_window()
+URL = "https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories/zgbs/amazon-devices/ref=zg_bs_nav_amazon-devices_0"
+driver.get(URL)
+# Saving as EXCEL file
+
+print('---------------------------Saving result as an Excel--------------------------------')
+
+while True:
+    pass

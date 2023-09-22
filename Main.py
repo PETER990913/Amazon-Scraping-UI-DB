@@ -14,6 +14,7 @@ item_link = ""
 
 def scrape_site():    
     from selenium import webdriver
+    from seleniumwire import webdriver
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.by import By
@@ -25,23 +26,49 @@ def scrape_site():
     import pandas as pd
     import time
     import re
+    import logging
+    
+    logging.getLogger('webdriver_manager').disabled = True
+    
+    SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62'
+
+    proxy_options = {
+        'proxy': {
+            'http': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+            'https': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+            'no_proxy': 'localhost:127.0.0.1'
+        }
+    }
+    # initial result values
     Product_title_list = []
     Product_image_URL_list = []
     Product_brand_list = []
     Product_Rate_list = []
     Product_Rating_list = []
     Product_price_list = []
+    Product_package_list = []
+    Product_department_list = []
+    Product_date_list = []
+    Product_ASIN_list = []
+    Product_BSR_list = []
+    Product_Month_list = []
+    # Defining XPATH, CLASSNAME etc...
     Product_tables_class_name = 'zg-grid-general-faceout'
-    Product_title_XPATH = '//*[@id="productTitle"]'
     Product_image_URL_XPATH = '//*[@id="landingImage"]'
     Product_brand_XPATH = '//*[@id="bylineInfo"]'
     Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
-    Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'
-    Product_price_XPATH = '//*[@id="corePrice_desktop"]/div/table/tbody/tr/td[2]/span[1]/span[2]'
+    Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
+    Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
+    Product_price_Class2 = 'p13n-sc-price'
     Next_page_XPATH = '//*[@id="CardInstanceVCC9iK3UsqjMrhI_ELT2fA"]/div[2]/div[2]/ul/li[4]'
+    Product_BSR_XPATH = '//*[@id="detailBulletsWrapper_feature_div"]/ul[1]/li/span/ul/li/span'
+    Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
+    
     print("link", item_link[0])
+    
     print('--------------------Automation scraping is successfully started-------------------')
-    driver = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
+    driver = webdriver.Chrome(seleniumwire_options=proxy_options)
+    # driver = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
     driver.maximize_window()
     URL = item_link[0]
     driver.get(URL)  
@@ -55,47 +82,101 @@ def scrape_site():
             except:
                 Product_URL = "none"
             print("Product_image_URL", Product_URL)
-            driver1 = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
-            driver1.maximize_window()
-            driver1.get(Product_URL)  
+            # Getting the product title
             try:
-                Product_title = driver1.find_element(By.XPATH, Product_title_XPATH).text
+                Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
             except:
                 Product_title = "none"
-            Product_title_list.append(Product_title)
             print("Product_title:", Product_title)
+            
+            # Getting the product price
+            try:
+                try:
+                    Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
+                except:
+                    Product_price = table.find_element(By.CLASS_NAME, Product_price_Class2).text                  
+            except:
+                Product_price = "none"
+            print("Product_price:", Product_price)
+            driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
+            # driver1 = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
+            driver1.maximize_window()
+            driver1.get(Product_URL)  
+            
             try:
                 Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
             except:
                 Product_image_URL = "none"
-            Product_image_URL_list.append(Product_image_URL)
             print("Product_image_URL:", Product_image_URL)
             try:
                 Product_brand = driver1.find_element(By.XPATH, Product_brand_XPATH).text
+                if ("Brand" in Product_brand):
+                    Product_brand = str(Product_brand).replace('Brand:', '').replace(' ', '')
+                else:
+                    Product_brand = "none"
             except:
-                Product_brand = "none"
-            Product_brand = str(Product_brand).replace('Brand:', '').replace(' ', '')
-            Product_brand_list.append(Product_brand)
+                Product_brand = "none"            
             print("Product_brand:", Product_brand)
             try:
                 Product_Rate = driver1.find_element(By.XPATH, Product_Rate_XPATH).text
             except:
                 Product_Rate = "none"
-            Product_Rate_list.append(Product_Rate)
             print("Product_Rate:", Product_Rate)
             try:
                 Product_Rating = driver1.find_element(By.XPATH, Product_Rating_XPATH).text
             except:
                 Product_Rating = "none"
             Product_Rating = str(Product_Rating).replace('ratings', '').replace(' ', '')
-            Product_Rating_list.append(Product_Rating)
-            print("Product_Rating:", Product_Rating)
+            print("Product_Rating:", Product_Rating)  
+            
             try:
-                Product_price = driver1.find_element(By.XPATH, Product_price_XPATH).text
+                Product_Month = driver1.find_element(By.XPATH, Product_Month_Sold_XPATH).text
+                Product_Month = str(Product_Month).replace('bought in past month', '').replace(' ', '')
             except:
-                Product_price = "none"
+                Product_Month = "none"
+            print("Product_Month:", Product_Month) 
+            
+            product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
+            firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
+            for firsttable in firsttables:
+                item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
+                print("item", item)
+                if ('Package' in item):
+                    Product_package = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                    print('Product_package:', Product_package)
+                if ('Department' in item):
+                    Product_department = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                    print('Product_department', Product_department)
+                if ('Date:' in item):
+                    Product_date = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                    print('Product_date:', Product_date)
+                if ('ASIN' in item):
+                    Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                    print('Product_ASIN:', Product_ASIN)
+                else:
+                    Product_package = "none"            
+                    Product_department = "none"            
+                    Product_date = "none"            
+                    Product_ASIN = "none"            
+            try:
+                Product_BSR = driver1.find_element(By.XPATH, Product_BSR_XPATH).text
+                Product_BSR = str(Product_BSR).split('\n')[0].replace(' ', '').replace('in', '')
+            except:
+                Product_BSR = "none"
+            print("Product_BSR", Product_BSR)
+            Product_title_list.append(Product_title)             
+            Product_image_URL_list.append(Product_image_URL)
+            Product_brand_list.append(Product_brand)
+            Product_Rate_list.append(Product_Rate)
+            Product_Rating_list.append(Product_Rating)
             Product_price_list.append(Product_price)
-            print("Product_price:", Product_price)
+            Product_package_list.append(Product_package)
+            Product_department_list.append(Product_department)
+            Product_date_list.append(Product_date)
+            Product_ASIN_list.append(Product_ASIN)
+            Product_BSR_list.append(Product_BSR)
+            Product_Month_list.append(Product_Month)
+            
             driver1.close()   
         j += 1
         try:
@@ -105,7 +186,8 @@ def scrape_site():
     print('--------------------Automation scraping is successfully finished--------------------')   
     # Saving as EXCEL file
     dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,
-            'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list}
+            'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list, 'Product_package_dimensions':Product_package_list, 'Product_department': Product_department_list, 'Product_Date_Available': Product_date_list,
+            'Product_ASIN': Product_ASIN_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list}
     df = pd.DataFrame(dict)
     df.to_csv('Result.csv') 
     print('---------------------------Saving result as an Excel--------------------------------')
@@ -178,7 +260,7 @@ def BuildingGUI():
     child_0 = tree.insert(parent_item, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories/zgbs/amazon-devices/ref=zg_bs_nav_amazon-devices_0")
     child_1 = tree.insert(parent_item, "end", text="Amazon Device Accessories")
     tree.insert(child_1, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Accessories/zgbs/amazon-devices/370783011/ref=zg_bs_nav_amazon-devices_1")
-    tree.insert(child_1, "end", text="Adapters & Connectors", tag="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Adapters-Connectors/zgbs/amazon-devices/17942903011/ref=zg_bs_nav_amazon-devices_2_370783011")
+    tree.insert(child_1, "end", text="Adapters & Connectors", tag="https://www.amazon.com/Best-Sellers-Amazon-Devices-Accessories-Amazon-Device-Adapters-Connectors/zgbs/amazon-devices/17942903011/ref=zg_bs_nav_amazon-devices_2_1289283011")
     tree.insert(child_1, "end", text="Audio")
     tree.insert(child_1, "end", text="Bases & Stands")
     tree.insert(child_1, "end", text="Charging Docks")
@@ -522,6 +604,42 @@ def BuildingGUI():
 
     parent_item13 = tree.insert("", "end", text="Clothing, Shoes & Jewelry")
     child13_0 = tree.insert(parent_item13, "end", text="All")
+    child13_1 = tree.insert(parent_item13, "end", text="Baby")
+    child13_2 = tree.insert(parent_item13, "end", text="Boys")
+    child13_3 = tree.insert(parent_item13, "end", text="Costumes & Accessories")
+    child13_4 = tree.insert(parent_item13, "end", text="Girls")
+    child13_5 = tree.insert(parent_item13, "end", text="Luggage & Travel Gear")
+    child13_6 = tree.insert(parent_item13, "end", text="Men")
+    child13_6_0 = tree.insert(child13_6, "end", text="All")
+    child13_6_1 = tree.insert(child13_6, "end", text="Accessories")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="Belts")
+    tree.insert(child13_6_1, "end", text="Collar Stays")
+    tree.insert(child13_6_1, "end", text="Cuff Links, Shirt Studs & Tie Clips")
+    tree.insert(child13_6_1, "end", text="Earmuffs")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    tree.insert(child13_6_1, "end", text="All")
+    child13_6_2 = tree.insert(child13_6, "end", text="Clothing")
+    child13_6_3 = tree.insert(child13_6, "end", text="Handbags & Shoulder Bags")
+    child13_6_4 = tree.insert(child13_6, "end", text="Jewelry")
+    child13_6_5 = tree.insert(child13_6, "end", text="Shoes")
+    child13_6_6 = tree.insert(child13_6, "end", text="Shops")
+    child13_6_7 = tree.insert(child13_6, "end", text="Watches")
+    
+    child13_7 = tree.insert(parent_item13, "end", text="Novelty & More")
+    child13_8 = tree.insert(parent_item13, "end", text="Shoe, Jewelry & Watch Accessories")
+    child13_9 = tree.insert(parent_item13, "end", text="Sport Specific Clothing")
+    child13_10 = tree.insert(parent_item13, "end", text="Uniforms, Work & Safety")
+    child13_11 = tree.insert(parent_item13, "end", text="Women")
 
     parent_item14 = tree.insert("", "end", text="Collectible Coins")
     child14_0 = tree.insert(parent_item14, "end", text="All")
@@ -548,7 +666,18 @@ def BuildingGUI():
     child21_0 = tree.insert(parent_item21, "end", text="All")
 
     parent_item22 = tree.insert("", "end", text="Handmade Products")
-    child22_0 = tree.insert(parent_item22, "end", text="All")
+    child22 = tree.insert(parent_item22, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Handmade-Products/zgbs/handmade/ref=zg_bs_nav_handmade_0")
+    child22_0 = tree.insert(parent_item22, "end", text="Baby")
+    child22_1 = tree.insert(parent_item22, "end", text="Beauty & Grooming")
+    child22_2 = tree.insert(parent_item22, "end", text="Clothing, Shoes & Accessories")
+    child22_3 = tree.insert(parent_item22, "end", text="Electronics Accessories")
+    child22_4 = tree.insert(parent_item22, "end", text="Health & Personal Care")
+    child22_5 = tree.insert(parent_item22, "end", text="Home & Kitchen")
+    child22_6 = tree.insert(parent_item22, "end", text="Jewelry")
+    child22_7 = tree.insert(parent_item22, "end", text="Pet Supplies")
+    child22_8 = tree.insert(parent_item22, "end", text="Sports & Outdoors")
+    child22_9 = tree.insert(parent_item22, "end", text="Stationery & Party Supplies")
+    child22_10 = tree.insert(parent_item22, "end", text="Toys & Games")
 
     parent_item23 = tree.insert("", "end", text="Health & Household")
     child23_0 = tree.insert(parent_item23, "end", text="All")
