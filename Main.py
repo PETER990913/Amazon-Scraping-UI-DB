@@ -46,12 +46,11 @@ def scrape_site():
     Product_Rate_list = []
     Product_Rating_list = []
     Product_price_list = []
-    Product_package_list = []
-    Product_department_list = []
-    Product_date_list = []
     Product_ASIN_list = []
     Product_BSR_list = []
     Product_Month_list = []
+    Product_specification_list = []
+    Product_description_list = []
     # Defining XPATH, CLASSNAME etc...
     Product_tables_class_name = 'zg-grid-general-faceout'
     Product_image_URL_XPATH = '//*[@id="landingImage"]'
@@ -63,7 +62,7 @@ def scrape_site():
     Next_page_XPATH = '//*[@id="CardInstanceVCC9iK3UsqjMrhI_ELT2fA"]/div[2]/div[2]/ul/li[4]'
     Product_BSR_XPATH = '//*[@id="detailBulletsWrapper_feature_div"]/ul[1]/li/span/ul/li/span'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
-    
+    Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
     print("link", item_link[0])
     
     print('--------------------Automation scraping is successfully started-------------------')
@@ -81,7 +80,7 @@ def scrape_site():
                 Product_URL = table.find_elements(By.TAG_NAME, 'a')[0].get_attribute('href')
             except:
                 Product_URL = "none"
-            print("Product_image_URL", Product_URL)
+            print("Product_URL", Product_URL)
             # Getting the product title
             try:
                 Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
@@ -136,31 +135,37 @@ def scrape_site():
                 Product_Month = "none"
             print("Product_Month:", Product_Month) 
             
-            product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
-            firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
-            for firsttable in firsttables:
-                item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
-                print("item", item)
-                if ('Package' in item):
-                    Product_package = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                    print('Product_package:', Product_package)
-                if ('Department' in item):
-                    Product_department = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                    print('Product_department', Product_department)
-                if ('Date:' in item):
-                    Product_date = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                    print('Product_date:', Product_date)
-                if ('ASIN' in item):
-                    Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                    print('Product_ASIN:', Product_ASIN)
-                else:
-                    Product_package = "none"            
-                    Product_department = "none"            
-                    Product_date = "none"            
-                    Product_ASIN = "none"            
             try:
-                Product_BSR = driver1.find_element(By.XPATH, Product_BSR_XPATH).text
-                Product_BSR = str(Product_BSR).split('\n')[0].replace(' ', '').replace('in', '')
+                Product_specification = driver1.find_element(By.XPATH, Product_specification_XPATH).get_attribute('innerText')
+            except:
+                Product_specification = "none"
+            print('Product_specification', Product_specification)
+            
+            try:
+                Product_description = driver1.find_element(By.ID, 'productDescription').text
+            except:
+                Product_description = "none"
+            print("Product_description", Product_description)
+            
+            try:
+                product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
+                firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
+                for firsttable in firsttables:
+                    item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
+                    # print("item:", item)                
+                    if ("ASIN" in item):
+                        print('44444444444444444444444')
+                        Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_ASIN:', Product_ASIN)
+                    else:                             
+                        Product_ASIN = "none" 
+                
+            except:
+                Product_ASIN = "none"     
+                     
+            try:
+                Product_BSR = driver1.find_elements(By.XPATH, Product_BSR_XPATH)[0].get_attribute('innerHTML')
+                Product_BSR = str(Product_BSR).split('<a')[0].replace('\n', '').replace(' ', '').replace('in', '')
             except:
                 Product_BSR = "none"
             print("Product_BSR", Product_BSR)
@@ -169,13 +174,17 @@ def scrape_site():
             Product_brand_list.append(Product_brand)
             Product_Rate_list.append(Product_Rate)
             Product_Rating_list.append(Product_Rating)
+            Product_specification_list.append(Product_specification)
+            Product_description_list.append(Product_description)
             Product_price_list.append(Product_price)
-            Product_package_list.append(Product_package)
-            Product_department_list.append(Product_department)
-            Product_date_list.append(Product_date)
             Product_ASIN_list.append(Product_ASIN)
             Product_BSR_list.append(Product_BSR)
             Product_Month_list.append(Product_Month)
+            
+            dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list, 
+            'Product_ASIN': Product_ASIN_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list}
+            df = pd.DataFrame(dict)
+            df.to_csv('Result.csv') 
             
             driver1.close()   
         j += 1
@@ -185,11 +194,7 @@ def scrape_site():
             print("can't find the next button anymore")  
     print('--------------------Automation scraping is successfully finished--------------------')   
     # Saving as EXCEL file
-    dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,
-            'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list, 'Product_package_dimensions':Product_package_list, 'Product_department': Product_department_list, 'Product_Date_Available': Product_date_list,
-            'Product_ASIN': Product_ASIN_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list}
-    df = pd.DataFrame(dict)
-    df.to_csv('Result.csv') 
+    
     print('---------------------------Saving result as an Excel--------------------------------')
     
 # defining the building GUI function
@@ -605,41 +610,76 @@ def BuildingGUI():
     parent_item13 = tree.insert("", "end", text="Clothing, Shoes & Jewelry")
     child13_0 = tree.insert(parent_item13, "end", text="All")
     child13_1 = tree.insert(parent_item13, "end", text="Baby")
+    tree.insert(child13_1, "end", text="All")
     child13_2 = tree.insert(parent_item13, "end", text="Boys")
+    child13_2_0 = tree.insert(child13_2, "end", text="All")
     child13_3 = tree.insert(parent_item13, "end", text="Costumes & Accessories")
+    child13_3_0 = tree.insert(child13_3, "end", text="All")
     child13_4 = tree.insert(parent_item13, "end", text="Girls")
+    child13_4_0 = tree.insert(child13_4, "end", text="All")
     child13_5 = tree.insert(parent_item13, "end", text="Luggage & Travel Gear")
+    child13_5_0 = tree.insert(child13_5, "end", text="All")
     child13_6 = tree.insert(parent_item13, "end", text="Men")
     child13_6_0 = tree.insert(child13_6, "end", text="All")
     child13_6_1 = tree.insert(child13_6, "end", text="Accessories")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="Belts")
-    tree.insert(child13_6_1, "end", text="Collar Stays")
-    tree.insert(child13_6_1, "end", text="Cuff Links, Shirt Studs & Tie Clips")
-    tree.insert(child13_6_1, "end", text="Earmuffs")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
-    tree.insert(child13_6_1, "end", text="All")
+    child13_6_1_0 = tree.insert(child13_6_1, "end", text="All")
+    child13_6_1_1 = tree.insert(child13_6_1, "end", text="Belts")
+    tree.insert(child13_6_1_1, "end", text="All")
+    child13_6_1_2 = tree.insert(child13_6_1, "end", text="Collar Stays")
+    tree.insert(child13_6_1_2, "end", text="All")
+    child13_6_1_3 = tree.insert(child13_6_1, "end", text="Cuff Links, Shirt Studs & Tie Clips")
+    tree.insert(child13_6_1_3, "end", text="All")
+    child13_6_1_4 = tree.insert(child13_6_1, "end", text="Earmuffs")
+    tree.insert(child13_6_1_4, "end", text="All")
+    child13_6_1_5 = tree.insert(child13_6_1, "end", text="Gloves & Mittens")
+    tree.insert(child13_6_1_5, "end", text="All")
+    child13_6_1_6 = tree.insert(child13_6_1, "end", text="Hand Fans")
+    tree.insert(child13_6_1_6, "end", text="All")
+    child13_6_1_7 = tree.insert(child13_6_1, "end", text="Handkerchiefs")
+    tree.insert(child13_6_1_7, "end", text="All")
+    child13_6_1_8 = tree.insert(child13_6_1, "end", text="Hats & Caps")
+    tree.insert(child13_6_1_8, "end", text="All")
+    child13_6_1_9 = tree.insert(child13_6_1, "end", text="Keyrings & Keychains")
+    tree.insert(child13_6_1_9, "end", text="All")
+    child13_6_1_10 = tree.insert(child13_6_1, "end", text="Scarves")
+    tree.insert(child13_6_1_10, "end", text="All")
+    child13_6_1_11 = tree.insert(child13_6_1, "end", text="Sport Headbands")
+    tree.insert(child13_6_1_11, "end", text="All")
+    child13_6_1_12 = tree.insert(child13_6_1, "end", text="Sunglasses & Eyewear Accessories")
+    tree.insert(child13_6_1_12, "end", text="All")
+    child13_6_1_13 = tree.insert(child13_6_1, "end", text="Suspenders")
+    tree.insert(child13_6_1_13, "end", text="All")
+    child13_6_1_14 = tree.insert(child13_6_1, "end", text="Ties, Cummerbunds & Pocket Squares")
+    tree.insert(child13_6_1_14, "end", text="All")
+    child13_6_1_15 = tree.insert(child13_6_1, "end", text="Wallets, Card Cases & Money Organizers")
+    tree.insert(child13_6_1_15, "end", text="All", tags = 'https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Mens-Wallets-Card-Cases-Money-Organizers/zgbs/fashion/7072333011/ref=zg_bs_nav_fashion_3_2474937011')    
+    tree.insert(child13_6_1_15, "end", text="Card & ID Cases")    
+    tree.insert(child13_6_1_15, "end", text="Coin Purses & Pouches")    
+    tree.insert(child13_6_1_15, "end", text="Money Clips")    
+    tree.insert(child13_6_1_15, "end", text="Wallets")    
     child13_6_2 = tree.insert(child13_6, "end", text="Clothing")
+    child13_6_2_0 = tree.insert(child13_6_2, "end", text="All")    
     child13_6_3 = tree.insert(child13_6, "end", text="Handbags & Shoulder Bags")
+    child13_6_3_0 = tree.insert(child13_6_3, "end", text="All")    
     child13_6_4 = tree.insert(child13_6, "end", text="Jewelry")
+    child13_6_4_0 = tree.insert(child13_6_4, "end", text="All")    
     child13_6_5 = tree.insert(child13_6, "end", text="Shoes")
+    child13_6_5_0 = tree.insert(child13_6_5, "end", text="All")    
     child13_6_6 = tree.insert(child13_6, "end", text="Shops")
+    child13_6_6_0 = tree.insert(child13_6_6, "end", text="All")    
     child13_6_7 = tree.insert(child13_6, "end", text="Watches")
+    child13_6_7_0 = tree.insert(child13_6_7, "end", text="All")    
     
     child13_7 = tree.insert(parent_item13, "end", text="Novelty & More")
+    child13_7_0 = tree.insert(child13_7, "end", text="All")
     child13_8 = tree.insert(parent_item13, "end", text="Shoe, Jewelry & Watch Accessories")
+    child13_8_0 = tree.insert(child13_8, "end", text="All")
     child13_9 = tree.insert(parent_item13, "end", text="Sport Specific Clothing")
+    child13_9_0 = tree.insert(child13_9, "end", text="All")
     child13_10 = tree.insert(parent_item13, "end", text="Uniforms, Work & Safety")
+    child13_10_0 = tree.insert(child13_10, "end", text="All")
     child13_11 = tree.insert(parent_item13, "end", text="Women")
+    child13_11_0 = tree.insert(child13_11, "end", text="All")
 
     parent_item14 = tree.insert("", "end", text="Collectible Coins")
     child14_0 = tree.insert(parent_item14, "end", text="All")
@@ -668,16 +708,27 @@ def BuildingGUI():
     parent_item22 = tree.insert("", "end", text="Handmade Products")
     child22 = tree.insert(parent_item22, "end", text="All", tags="https://www.amazon.com/Best-Sellers-Handmade-Products/zgbs/handmade/ref=zg_bs_nav_handmade_0")
     child22_0 = tree.insert(parent_item22, "end", text="Baby")
+    child22_0_0 = tree.insert(child22_0, "end", text="All")
     child22_1 = tree.insert(parent_item22, "end", text="Beauty & Grooming")
+    child22_1_0 = tree.insert(child22_1, "end", text="All")
     child22_2 = tree.insert(parent_item22, "end", text="Clothing, Shoes & Accessories")
+    child22_2_0 = tree.insert(child22_2, "end", text="All")
     child22_3 = tree.insert(parent_item22, "end", text="Electronics Accessories")
+    child22_3_0 = tree.insert(child22_3, "end", text="All")
     child22_4 = tree.insert(parent_item22, "end", text="Health & Personal Care")
+    child22_4_0 = tree.insert(child22_4, "end", text="All")
     child22_5 = tree.insert(parent_item22, "end", text="Home & Kitchen")
+    child22_5_0 = tree.insert(child22_5, "end", text="All")
     child22_6 = tree.insert(parent_item22, "end", text="Jewelry")
+    child22_6_0 = tree.insert(child22_6, "end", text="All")
     child22_7 = tree.insert(parent_item22, "end", text="Pet Supplies")
+    child22_7_0 = tree.insert(child22_7, "end", text="All")
     child22_8 = tree.insert(parent_item22, "end", text="Sports & Outdoors")
+    child22_8_0 = tree.insert(child22_8, "end", text="All")
     child22_9 = tree.insert(parent_item22, "end", text="Stationery & Party Supplies")
+    child22_9_0 = tree.insert(child22_9, "end", text="All")
     child22_10 = tree.insert(parent_item22, "end", text="Toys & Games")
+    child22_10_0 = tree.insert(child22_10, "end", text="All")
 
     parent_item23 = tree.insert("", "end", text="Health & Household")
     child23_0 = tree.insert(parent_item23, "end", text="All")
