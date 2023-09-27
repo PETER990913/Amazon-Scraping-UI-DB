@@ -26,11 +26,12 @@ def scrape_site():
     import pandas as pd
     import time
     import re
-    import logging
+    # import logging
     
-    logging.getLogger('webdriver_manager').disabled = True
+    # logging.getLogger('webdriver_manager').disabled = True
     
-    SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62'
+    SCRAPEOPS_API_KEY = '35496838-3800-41c3-93e8-90a14bacf5e7'
+    # SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62' //Premium Proxy
 
     proxy_options = {
         'proxy': {
@@ -51,6 +52,14 @@ def scrape_site():
     Product_Month_list = []
     Product_specification_list = []
     Product_description_list = []
+    Product_category_list = []
+    Product_package_dimension_list = []
+    Product_Date_list = []
+    Product_Department_list = []
+    Product_Model_number_list = []
+    Product_Manufacturer_list = []
+    Product_Country_list = []
+    Product_UNSPSC_list = []
     # Defining XPATH, CLASSNAME etc...
     Product_tables_class_name = 'zg-grid-general-faceout'
     Product_image_URL_XPATH = '//*[@id="landingImage"]'
@@ -63,6 +72,7 @@ def scrape_site():
     Product_BSR_XPATH = '//*[@id="detailBulletsWrapper_feature_div"]/ul[1]/li/span/ul/li/span'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
+    Product_category_XPATH = '//*[@id="wayfinding-breadcrumbs_feature_div"]/ul'
     print("link", item_link[0])
     
     print('--------------------Automation scraping is successfully started-------------------')
@@ -148,20 +158,114 @@ def scrape_site():
             print("Product_description", Product_description)
             
             try:
+                product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
+                product_category = str(product_category).replace('\n', '')
+            except:
+                product_category = "none"
+            print('product_category', product_category)
+            
+            if(len(driver1.find_elements(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul'))):
                 product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
-                firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
+                firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')                
                 for firsttable in firsttables:
                     item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
-                    # print("item:", item)                
-                    if ("ASIN" in item):
-                        print('44444444444444444444444')
+                    # print("item:", item)   
+                    if ("Product Dimensions" in item):
+                        print('---------------------')
+                        Product_package_dimension = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_package_dimension:', Product_package_dimension)             
+                    elif ("ASIN" in item):
+                        print('---------------------')
                         Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
                         print('Product_ASIN:', Product_ASIN)
-                    else:                             
-                        Product_ASIN = "none" 
-                
-            except:
-                Product_ASIN = "none"     
+                    elif ("Date First Available" in item):
+                        print('---------------------')
+                        Product_Date = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_Date:', Product_Date)   
+                    elif ("Department" in item):
+                        print('--------------------')
+                        Product_Department = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_Department:', Product_Department)   
+                    elif ("Item model number" in item):
+                        print('-------------------------')
+                        Product_Model_number = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_Model_number:', Product_Model_number)  
+                    elif ("Manufacturer" in item):
+                        print('------------------------')
+                        Product_Manufacturer = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_Manufacturer:', Product_Manufacturer) 
+                    elif ("Country of Origin" in item):
+                        print('---------------------------')
+                        Product_Country = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_Country:', Product_Country) 
+                    elif ("UNSPSC Code" in item):
+                        print('-------------------------')
+                        Product_UNSPSC = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                        print('Product_UNSPSC:', Product_UNSPSC)  
+                    else:
+                        Product_package_dimension = "none"
+                        Product_ASIN = "none"
+                        Product_Date = "none"
+                        Product_Department = "none"
+                        Product_Model_number = "none"
+                        Product_Manufacturer = "none"
+                        Product_Country = "none"
+                        Product_UNSPSC = "none"
+            elif(len(driver1.find_elements(By.XPATH, '//*[@id="productDetails_detailBullets_sections1"]'))):
+                Product_information = driver1.find_element(By.XPATH, '//*[@id="productDetails_detailBullets_sections1"]')
+                secondtables = Product_information.find_elements(By.TAG_NAME, 'tr')
+                for secondtable in secondtables:
+                    item = secondtable.find_element(By.TAG_NAME, 'th').text
+                    if ("Product Dimensions" in item):
+                        print('++++++++++++++++++++++++++')
+                        Product_package_dimension = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_package_dimension:', Product_package_dimension)     
+                    elif ("ASIN" in item):
+                        print('++++++++++++++++++++++++++++')
+                        Product_ASIN = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_ASIN:', Product_ASIN)
+                    elif ("Manufacturer" in item):
+                        print('+++++++++++++++++++++++')
+                        Product_Manufacturer = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_Manufacturer:', Product_Manufacturer)
+                    elif ("Department" in item):
+                        print('+++++++++++++++++++')
+                        Product_Department = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_Department:', Product_Department) 
+                    elif ("Date First Available" in item):
+                        print('++++++++++++++++++++')
+                        Product_Date = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_Date:', Product_Date) 
+                    elif ("Item model number" in item):
+                        print('+++++++++++++++++++++')
+                        Product_Model_number = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_Model_number:', Product_Model_number) 
+                    elif ("Country of Origin" in item):
+                        print('+++++++++++++++++++++++')
+                        Product_Country = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_Country:', Product_Country) 
+                    elif ("UNSPSC Code" in item):
+                        print('+++++++++++++++++++++++')
+                        Product_UNSPSC = secondtable.find_element(By.TAG_NAME, 'td').text
+                        print('Product_UNSPSC:', Product_UNSPSC) 
+                    else:
+                        Product_package_dimension = "none"
+                        Product_ASIN = "none"
+                        Product_Date = "none"
+                        Product_Department = "none"
+                        Product_Model_number = "none"
+                        Product_Manufacturer = "none"
+                        Product_Country = "none"
+                        Product_UNSPSC = "none"
+            else:
+                Product_ASIN = "none" 
+                Product_package_dimension = "none"
+                Product_Manufacturer = "none"
+                Product_Model_number = "none"
+                Product_Department = "none"
+                Product_Date = "none"
+                Product_UNSPSC = "none"
+                Product_Country = "none"                      
                      
             try:
                 Product_BSR = driver1.find_elements(By.XPATH, Product_BSR_XPATH)[0].get_attribute('innerHTML')
@@ -178,11 +282,20 @@ def scrape_site():
             Product_description_list.append(Product_description)
             Product_price_list.append(Product_price)
             Product_ASIN_list.append(Product_ASIN)
+            Product_package_dimension_list.append(Product_package_dimension)
+            Product_Date_list.append(Product_Date)
+            Product_Department_list.append(Product_Department)
             Product_BSR_list.append(Product_BSR)
             Product_Month_list.append(Product_Month)
+            Product_category_list.append(product_category)
+            Product_Model_number_list.append(Product_Model_number)
+            Product_Manufacturer_list.append(Product_Manufacturer)
+            Product_Country_list.append(Product_Country)
+            Product_UNSPSC_list.append(Product_UNSPSC)
             
-            dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rate': Product_Rate_list, 'Product_Rating': Product_Rating_list, 'Product_price': Product_price_list, 
-            'Product_ASIN': Product_ASIN_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list}
+            dict = {'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number of customer review': Product_Rating_list, 'Product_price': Product_price_list, 
+            'Product_ASIN': Product_ASIN_list,'Product Dim': Product_package_dimension_list, 'Deparment': Product_Department_list,'Item Model Number': Product_Model_number_list, 'Manufacturer': Product_Manufacturer_list, 'Date First Avaialbe': Product_Date_list,
+            'Contry Origin': Product_Country_list, 'UNSPSC Code': Product_UNSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, 'Product location in tree': Product_category_list}
             df = pd.DataFrame(dict)
             df.to_csv('Result.csv') 
             
