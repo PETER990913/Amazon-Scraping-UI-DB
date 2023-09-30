@@ -27,6 +27,7 @@ def scrape_site():
     import time
     import re
     import logging
+    from collections import Counter
     
     logging.getLogger('webdriver_manager').disabled = True
     
@@ -146,16 +147,11 @@ def scrape_site():
             leaf_category = leaf_category_body.find_elements(By.TAG_NAME, 'li')[-1].text
             print('leaf_category:', leaf_category)
             
-            # Product_category = "Cell Phones & Accessories›Accessories›Grips"
-            Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Wallets"
-            # Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Coin Purses & Pouches"
-            # Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Money Clips"
-            
-            # try:
-            #     Product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
-            #     Product_category = str(Product_category).replace('\n', '')
-            # except:
-            #     Product_category = "none"  
+            try:
+                Product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
+                Product_category = str(Product_category).replace('\n', '')
+            except:
+                Product_category = "none"  
             print("Product_category:", Product_category) 
                          
             try:
@@ -358,6 +354,11 @@ def scrape_site():
             Product_BSR_list.append(Product_BSR)
             Product_Month_list.append(Product_Month)
             Product_About_Item_list.append(Product_About_Item)
+            
+            
+            string_counts = Counter(Product_category_list)
+            most_common_string = string_counts.most_common(1)[0][0]
+            Product_category_list = [most_common_string] * len(Product_category_list)
             
             dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
             'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,

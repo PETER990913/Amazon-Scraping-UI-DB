@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from pathlib import Path
-from collections import Counter
+
 
 # Initializing the global variants
 
@@ -27,6 +27,7 @@ def scrape_site():
     import time
     import re
     import logging
+    from collections import Counter
     
     logging.getLogger('webdriver_manager').disabled = True
     
@@ -62,7 +63,7 @@ def scrape_site():
     Product_Special_list = []
     Product_About_Item_list = []
     # Defining XPATH, CLASSNAME etc...
-    Product_tables_class_name = 'a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content'
+    Product_tables_CSS_SELECTOR = 'div[class="a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content"]'
     Product_image_URL_XPATH = '//*[@id="landingImage"]'
     Product_brand_XPATH = '//*[@id="bylineInfo"]'
     Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
@@ -70,7 +71,7 @@ def scrape_site():
     Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
     Product_price_Class2 = 'p13n-sc-price'
     Next_page_Classname = 'a-last'
-    Product_BSR_Classname = 'zg-bdg-text'
+    Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
     Product_category_XPATH = '//*[@id="wayfinding-breadcrumbs_feature_div"]/ul'
@@ -83,31 +84,9 @@ def scrape_site():
     URL = item_link[0]
     driver.get(URL)  
     
-    # driver.execute_script("window.scrollTo(0, 3000);")
-    # time.sleep(3)
-    # driver.execute_script("window.scrollTo(0, 2000);")
-    # time.sleep(3)
-    # try:
-    #     click_element = driver.find_element(By.XPATH, Product_loading_Clickable_XPATH)
-    #     driver.execute_script("arguments[0].scrollIntoView();", click_element)
-    #     time.sleep(3)
-    # except:
-    #     pass
-    # try:
-    #     click_element = driver.find_element(By.XPATH, Product_loading_Clickable_XPATH)
-    #     driver.execute_script("arguments[0].scrollIntoView();", click_element)
-    #     time.sleep(3)
-    # except:
-    #     pass
-    # try:
-    #     click_element = driver.find_element(By.XPATH, Product_loading_Clickable_XPATH)
-    #     driver.execute_script("arguments[0].scrollIntoView();", click_element)
-    #     time.sleep(3)
-    # except:
-    #     pass
     j = 0    
     while j<2:
-        tables = driver.find_elements(By.CSS_SELECTOR, 'div[class="a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content"]')
+        tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
         print(len(tables))
         for table in tables:
             try:
@@ -123,7 +102,7 @@ def scrape_site():
             print("Product_title:", Product_title)
             
             try:
-                Product_BSR = table.find_element(By.CSS_SELECTOR, 'span[class="zg-bdg-text"]').text
+                Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
             except:
                 Product_BSR = "none"
             print('Product_BSR:', Product_BSR)
@@ -139,17 +118,9 @@ def scrape_site():
             
             driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
             driver1.maximize_window()
-            driver1.get(Product_URL)  
+            driver1.get(Product_URL)              
             
-            # if (URL == )
-            leaf_category_body = driver1.find_element(By.XPATH, Product_category_XPATH)
-            leaf_category = leaf_category_body.find_elements(By.TAG_NAME, 'li')[-1].text
-            print('leaf_category:', leaf_category)
-            
-            # Product_category = "Cell Phones & Accessories›Accessories›Grips"
-            # Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Wallets"
-            # Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Coin Purses & Pouches"
-            # Product_category = "Clothing, Shoes & Jewelry›Men›Accessories›Wallets, Card Cases & Money Organizers›Money Clips"           
+                     
             try:
                 Product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
                 Product_category = str(Product_category).replace('\n', '')
@@ -357,6 +328,7 @@ def scrape_site():
             Product_BSR_list.append(Product_BSR)
             Product_Month_list.append(Product_Month)
             Product_About_Item_list.append(Product_About_Item)
+            
             string_counts = Counter(Product_category_list)
             most_common_string = string_counts.most_common(1)[0][0]
             Product_category_list = [most_common_string] * len(Product_category_list)
@@ -440,9 +412,6 @@ def BuildingGUI():
         selected_item = tree.selection()[0]
         item_text = tree.item(selected_item)['text']
         item_link = tree.item(selected_item)['tags']
-        # print(item_text)
-        # scrape_site(item_link)
-        # return item_text, item_link   
     
     # Insert data into the Treeview
     parent_item = tree.insert("", "end", text="Amazon Devices & Accessories")
