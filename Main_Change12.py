@@ -24,6 +24,7 @@ def scrape_site():
     from selenium.webdriver.support import expected_conditions as EC
     import undetected_chromedriver as uc
     from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.common.action_chains import ActionChains
     import pandas as pd
     import time
     import re
@@ -71,8 +72,8 @@ def scrape_site():
     Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
     Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
     Product_price_Class2 = 'p13n-sc-price'
-    Next_page_Classname = 'a-last'
-    Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
+    Next_page_CSS_Selector = 'li[class="a-last"]'
+    # Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
     Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
@@ -83,7 +84,7 @@ def scrape_site():
     driver.maximize_window()
     URL = item_link[0]
     driver.get(URL)  
-    
+    i = 0
     j = 0    
     while j<2:
         tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
@@ -101,11 +102,11 @@ def scrape_site():
                 Product_title = "none"
             print("Product_title:", Product_title)
             
-            try:
-                Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
-            except:
-                Product_BSR = "none"
-            print('Product_BSR:', Product_BSR)
+            # try:
+            #     Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
+            # except:
+            #     Product_BSR = "none"
+            # print('Product_BSR:', Product_BSR)
             # Getting the product price
             try:
                 try:
@@ -120,11 +121,6 @@ def scrape_site():
             driver1.maximize_window()
             driver1.get(Product_URL)  
                      
-            # try:
-            #     Product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
-            #     Product_category = str(Product_category).replace('\n', '')
-            # except:
-            #     Product_category = "none"  
             Product_category = Category_result
             print("Product_category:", Product_category) 
                          
@@ -307,6 +303,10 @@ def scrape_site():
                 Product_UPSPSC = "none"   
                 Product_Special = "none" 
                      
+            i += 1
+            Product_BSR = "#" + str(i)
+            print('Product_BSR:', Product_BSR)
+            
             
             Product_title_list.append(Product_title)     
             Product_category_list.append(Product_category)        
@@ -341,7 +341,8 @@ def scrape_site():
             driver1.close()   
         j += 1
         try:
-            driver.find_element(By.CLASS_NAME, Next_page_Classname).click()
+            print("-----------------------------Clicking the next button now---------------------------")
+            driver.find_element(By.CSS_SELECTOR, Next_page_CSS_Selector).click()
             time.sleep(5)
         except:
             print("can't find the next button anymore")  
