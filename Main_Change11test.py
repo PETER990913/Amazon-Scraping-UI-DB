@@ -24,6 +24,7 @@ def scrape_site():
     from selenium.webdriver.support import expected_conditions as EC
     import undetected_chromedriver as uc
     from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.common.action_chains import ActionChains
     import pandas as pd
     import time
     import re
@@ -71,11 +72,10 @@ def scrape_site():
     Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
     Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
     Product_price_Class2 = 'p13n-sc-price'
-    Next_page_Classname = 'a-last'
+    Next_page_CSS_Selector = 'li[class="a-last"]'
     Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
-    Product_category_XPATH = '//*[@id="wayfinding-breadcrumbs_feature_div"]/ul'
     Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
     print("link", item_link[0])
     
@@ -84,7 +84,10 @@ def scrape_site():
     driver.maximize_window()
     URL = item_link[0]
     driver.get(URL)  
-    
+    moveElement = driver.find_element(By.CSS_SELECTOR, Next_page_CSS_Selector)
+    actions = ActionChains(driver)
+    actions.move_to_element(moveElement).perform()
+    time.sleep(10)
     j = 0    
     while j<2:
         tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
@@ -136,11 +139,12 @@ def scrape_site():
             print("Product_image_URL:", Product_image_URL)
             
             try:
-                Product_brand = driver1.find_element(By.XPATH, Product_brand_XPATH).text
-                if ("Brand" in Product_brand):
-                    Product_brand = str(Product_brand).replace('Brand:', '').replace(' ', '')
-                else:
-                    Product_brand = "none"
+                Product_brand_text = driver1.find_element(By.XPATH, Product_brand_XPATH).text
+                Product_brand = "none"
+                if ("Brand" in Product_brand_text):
+                    Product_brand = str(Product_brand_text).replace('Brand:', '').replace(' ', '')
+                elif ("Visit" in Product_brand_text):
+                    Product_brand = str(Product_brand_text).replace('Visit the', '').replace(' ', '').replace('Store', '')                
             except:
                 Product_brand = "none"            
             print("Product_brand:", Product_brand)
@@ -341,7 +345,8 @@ def scrape_site():
             driver1.close()   
         j += 1
         try:
-            driver.find_element(By.CLASS_NAME, Next_page_Classname).click()
+            print("-----------------------------Clicking the next button now---------------------------")
+            driver.find_element(By.CSS_SELECTOR, Next_page_CSS_Selector).click()
             time.sleep(5)
         except:
             print("can't find the next button anymore")  
@@ -1300,19 +1305,35 @@ def BuildingGUI():
     tree.insert(child13_8_0, "end", text="Loose Gemstones", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Loose-Gemstones/zgbs/fashion/8975615011/ref=zg_bs_nav_fashion_3_9616098011')
     tree.insert(child13_8_0, "end", text="Ring Sizers", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Ring-Sizers/zgbs/fashion/21572176011/ref=zg_bs_nav_fashion_3_8975615011')
     child13_8_1 = tree.insert(child13_8, "end", text="Shoe Care & Accessories")
-    tree.insert(child13_8_1, "end", text="Electric Shoe Polishers", tags='')
-    tree.insert(child13_8_1, "end", text="Ice & Snow Grips", tags='')
-    tree.insert(child13_8_1, "end", text="Inserts & Insoles", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe & Boot Trees", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe Bags", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe Brushes", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe Care Treatments & Dyes", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe", tags='')
-    tree.insert(child13_8_1, "end", text="Shoe", tags='')
+    tree.insert(child13_8_1, "end", text="Electric Shoe Polishers", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Electric-Shoe-Polishers/zgbs/fashion/3743391/ref=zg_bs_nav_fashion_3_3421064011')
+    tree.insert(child13_8_1, "end", text="Ice & Snow Grips", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Ice-Snow-Grips/zgbs/fashion/3421064011/ref=zg_bs_nav_fashion_3_3743391')
+    child13_8_1_0 = tree.insert(child13_8_1, "end", text="Inserts & Insoles")
+    tree.insert(child13_8_1_0, "end", text="Arch Supports", tags='https://www.amazon.com/Best-Sellers-Health-Household-Foot-Arch-Supports/zgbs/hpc/3780091/ref=zg_bs_nav_hpc_4_3780081')
+    tree.insert(child13_8_1_0, "end", text="Ball-of-Foot Cushions", tags='https://www.amazon.com/Best-Sellers-Health-Household-Ball-of-Foot-Cushions/zgbs/hpc/3780101/ref=zg_bs_nav_hpc_4_3780091')
+    tree.insert(child13_8_1_0, "end", text="Heel Cushions & Cups", tags='https://www.amazon.com/Best-Sellers-Health-Household-Heel-Cushions-Cups/zgbs/hpc/3780111/ref=zg_bs_nav_hpc_4_3780101')
+    tree.insert(child13_8_1_0, "end", text="Insoles", tags='https://www.amazon.com/Best-Sellers-Health-Household-Shoe-Insoles/zgbs/hpc/3780121/ref=zg_bs_nav_hpc_4_3780111')
+    tree.insert(child13_8_1, "end", text="Shoe & Boot Trees", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Boot-Trees/zgbs/fashion/3421050011/ref=zg_bs_nav_fashion_3_3421064011')
+    tree.insert(child13_8_1, "end", text="Shoe Bags", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Bags/zgbs/fashion/15744061/ref=zg_bs_nav_fashion_3_3421050011')
+    tree.insert(child13_8_1, "end", text="Shoe Brushes", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Brushes/zgbs/fashion/3743401/ref=zg_bs_nav_fashion_3_3421050011')
+    child13_8_1_1 = tree.insert(child13_8_1, "end", text="Shoe Care Treatments & Dyes")
+    tree.insert(child13_8_1_1, "end", text="Dyes", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Dyes/zgbs/fashion/3421048011/ref=zg_bs_nav_fashion_4_21614982011')
+    tree.insert(child13_8_1_1, "end", text="Shoe Care Kits", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Care-Kits/zgbs/fashion/3621779011/ref=zg_bs_nav_fashion_4_3421048011')
+    child13_8_1_1_0 = tree.insert(child13_8_1_1, "end", text="Shoe Treatments & Polishes")
+    tree.insert(child13_8_1_1_0, "end", text="Shoe Cleaners", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Cleaners/zgbs/fashion/21381610011/ref=zg_bs_nav_fashion_5_21381609011')
+    tree.insert(child13_8_1_1_0, "end", text="Shoe Polishes", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Polishes/zgbs/fashion/21381609011/ref=zg_bs_nav_fashion_5_21381610011')
+    tree.insert(child13_8_1_1_0, "end", text="Water & Stain Treatments", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Protective-Treatments/zgbs/fashion/21381608011/ref=zg_bs_nav_fashion_5_21381609011')
+    tree.insert(child13_8_1, "end", text="Shoe Decoration Charms", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Decoration-Charms/zgbs/fashion/3421062011/ref=zg_bs_nav_fashion_3_3743401')
+    tree.insert(child13_8_1, "end", text="Shoe Dryers", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Dryers/zgbs/fashion/3743411/ref=zg_bs_nav_fashion_3_3421062011')
+    tree.insert(child13_8_1, "end", text="Shoe Horns & Boot Jacks", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Horns-Boot-Jacks/zgbs/fashion/3421055011/ref=zg_bs_nav_fashion_3_3743411')
+    tree.insert(child13_8_1, "end", text="Shoe Measuring Devices", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoe-Measuring-Devices/zgbs/fashion/3421065011/ref=zg_bs_nav_fashion_3_3421055011')
+    tree.insert(child13_8_1, "end", text="Shoelaces", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Shoelaces/zgbs/fashion/3421054011/ref=zg_bs_nav_fashion_3_3421065011')
     child13_8_2 = tree.insert(child13_8, "end", text="Watch Accessories")
+    tree.insert(child13_8_2, "end", text="Cabinets & Cases", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Watch-Cabinets-Cases/zgbs/fashion/378530011/ref=zg_bs_nav_fashion_3_9616099011')
+    tree.insert(child13_8_2, "end", text="Coin & Button Cell", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Coin-Button-Cell-Batteries/zgbs/fashion/389581011/ref=zg_bs_nav_fashion_3_378530011')
+    tree.insert(child13_8_2, "end", text="Pocket Watch Chains", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Pocket-Watch-Chains/zgbs/fashion/378528011/ref=zg_bs_nav_fashion_3_378530011')
+    tree.insert(child13_8_2, "end", text="Repair Tools & Kits", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Watch-Repair-Tools-Kits/zgbs/fashion/378531011/ref=zg_bs_nav_fashion_3_378528011')
+    tree.insert(child13_8_2, "end", text="Watch Bands", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Mens-Watch-Bands/zgbs/fashion/6358541011/ref=zg_bs_nav_fashion_4_6909234011')
+    tree.insert(child13_8_2, "end", text="Watch Winders", tags='https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry-Watch-Winders/zgbs/fashion/378532011/ref=zg_bs_nav_fashion_3_378531011')
     child13_9 = tree.insert(parent_item13, "end", text="Sport Specific Clothing")
     child13_9_0 = tree.insert(child13_9, "end", text="All")
     child13_10 = tree.insert(parent_item13, "end", text="Uniforms, Work & Safety")
@@ -1353,9 +1374,23 @@ def BuildingGUI():
     child22_2 = tree.insert(parent_item22, "end", text="Clothing, Shoes & Accessories")
     child22_2_0 = tree.insert(child22_2, "end", text="All")
     child22_3 = tree.insert(parent_item22, "end", text="Electronics Accessories")
-    child22_3_0 = tree.insert(child22_3, "end", text="All")
+    tree.insert(child22_3, "end", text="Camera & Photo Accessories", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Camera-Photo-Accessories/zgbs/handmade/14345424011/ref=zg_bs_nav_handmade_2_14345426011')
+    tree.insert(child22_3, "end", text="Cell Phone Accessories", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Cell-Phone-Accessories/zgbs/handmade/14345426011/ref=zg_bs_nav_handmade_2_14345424011')
+    child22_3_0 = tree.insert(child22_3, "end", text="Computer Accessories")
+    tree.insert(child22_3_0, "end", text="Mouse Pads", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Computer-Mouse-Pads/zgbs/handmade/14345432011/ref=zg_bs_nav_handmade_3_14345430011')
+    tree.insert(child22_3_0, "end", text="Wrist Rests", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Computer-Wrist-Rests/zgbs/handmade/14345433011/ref=zg_bs_nav_handmade_3_14345432011')
+    tree.insert(child22_3, "end", text="Fitness Tracker Bands & Straps", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Fitness-Tracker-Bands-Straps/zgbs/handmade/18730253011/ref=zg_bs_nav_handmade_2_11403474011')
+    child22_3_1 = tree.insert(child22_3, "end", text="Laptop Accessories")
+    child22_3_1_0 = tree.insert(child22_3_1, "end", text="Bags, Cases & Sleeves")
+    tree.insert(child22_3_1_0, "end", text="Briefcases", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Laptop-Netbook-Briefcases/zgbs/handmade/14345442011/ref=zg_bs_nav_handmade_4_14345440011')
+    tree.insert(child22_3_1_0, "end", text="Hard Case Shells", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Laptop-Netbook-Hard-Case-Shells/zgbs/handmade/14345443011/ref=zg_bs_nav_handmade_4_14345442011')
+    tree.insert(child22_3_1_0, "end", text="Messenger & Shoulder Bags", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Laptop-Netbook-Messenger-Shoulder-Bags/zgbs/handmade/14345444011/ref=zg_bs_nav_handmade_4_14345443011')
+    tree.insert(child22_3_1_0, "end", text="Sleeves", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Laptop-Netbook-Sleeves/zgbs/handmade/14345447011/ref=zg_bs_nav_handmade_4_14345444011')
+    tree.insert(child22_3_1, "end", text="Skins & Decals", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Laptop-Netbook-Skins-Decals/zgbs/handmade/14345449011/ref=zg_bs_nav_handmade_3_14345439011')
     child22_4 = tree.insert(parent_item22, "end", text="Health & Personal Care")
-    child22_4_0 = tree.insert(child22_4, "end", text="All")
+    child22_4_0 = tree.insert(child22_4, "end", text="Personal Care")
+    child22_4_0_0 = tree.insert(child22_4_0, "end", text="Bath & Bathing Accessories")
+    child22_4_1 = tree.insert(child22_4, "end", text="Wellness & Relaxation")
     child22_5 = tree.insert(parent_item22, "end", text="Home & Kitchen")
     child22_5_0 = tree.insert(child22_5, "end", text="All")
     child22_6 = tree.insert(parent_item22, "end", text="Jewelry")
@@ -1365,9 +1400,44 @@ def BuildingGUI():
     child22_8 = tree.insert(parent_item22, "end", text="Sports & Outdoors")
     child22_8_0 = tree.insert(child22_8, "end", text="All")
     child22_9 = tree.insert(parent_item22, "end", text="Stationery & Party Supplies")
-    child22_9_0 = tree.insert(child22_9, "end", text="All")
+    child22_9_0 = tree.insert(child22_9, "end", text="Party Supplies")
+    tree.insert(child22_9_0, "end", text="Aisle Runners", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Aisle-Runners/zgbs/handmade/16495852011/ref=zg_bs_nav_handmade_3_11435471011')
+    tree.insert(child22_9_0, "end", text="Centerpieces", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Centerpieces/zgbs/handmade/11435472011/ref=zg_bs_nav_handmade_3_16495852011')
+    tree.insert(child22_9_0, "end", text="Ceremony Programs", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Ceremony-Programs/zgbs/handmade/16578958011/ref=zg_bs_nav_handmade_3_11435472011')
+    tree.insert(child22_9_0, "end", text="Confetti", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Confetti/zgbs/handmade/16495853011/ref=zg_bs_nav_handmade_3_16578958011')
+    tree.insert(child22_9_0, "end", text="Decorations", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Decorations/zgbs/handmade/11435473011/ref=zg_bs_nav_handmade_3_16495853011')
+    tree.insert(child22_9_0, "end", text="Garlands & Decorative Banners", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Garlands-Decorative-Banners/zgbs/handmade/16495854011/ref=zg_bs_nav_handmade_3_11435473011')
+    tree.insert(child22_9_0, "end", text="Menu Cards", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Menu-Cards/zgbs/handmade/16578956011/ref=zg_bs_nav_handmade_3_16495854011')
+    tree.insert(child22_9_0, "end", text="Party Favors", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Party-Favors/zgbs/handmade/11435476011/ref=zg_bs_nav_handmade_3_16578956011')
+    tree.insert(child22_9_0, "end", text="Place Cards", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Place-Cards/zgbs/handmade/11435480011/ref=zg_bs_nav_handmade_3_11435476011')
+    tree.insert(child22_9_0, "end", text="Table Numbers", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Table-Numbers/zgbs/handmade/16495855011/ref=zg_bs_nav_handmade_3_11435480011')
+    tree.insert(child22_9, "end", text="Pens & Pencils", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Pens-Pencils/zgbs/handmade/11435481011/ref=zg_bs_nav_handmade_2_11435470011')    
+    child22_9_2 = tree.insert(child22_9, "end", text="Stationery")
+    tree.insert(child22_9_2, "end", text="Appointment Books & Planners", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Appointment-Books-Planners/zgbs/handmade/13542491011/ref=zg_bs_nav_handmade_3_11435484011')
+    tree.insert(child22_9_2, "end", text="Books & Journals", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Books-Journals/zgbs/handmade/11438774011/ref=zg_bs_nav_handmade_3_13542491011')
+    tree.insert(child22_9_2, "end", text="Gift Tags", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Gift-Tags/zgbs/handmade/13542500011/ref=zg_bs_nav_handmade_3_11438774011')
+    tree.insert(child22_9_2, "end", text="Gift Wrapping Paper", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Gift-Wrapping-Paper/zgbs/handmade/11435487011/ref=zg_bs_nav_handmade_3_13542500011')
+    tree.insert(child22_9_2, "end", text="Invitations", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Invitations/zgbs/handmade/11435485011/ref=zg_bs_nav_handmade_3_11435487011')
+    tree.insert(child22_9_2, "end", text="Labels", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Labels/zgbs/handmade/13542501011/ref=zg_bs_nav_handmade_3_11435485011')
+    tree.insert(child22_9_2, "end", text="Notecards & Greeting Cards", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Notecards-Greeting-Cards/zgbs/handmade/11435486011/ref=zg_bs_nav_handmade_3_13542501011')
+    tree.insert(child22_9_2, "end", text="Paper", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Paper/zgbs/handmade/11435488011/ref=zg_bs_nav_handmade_3_11435486011')
+    tree.insert(child22_9_2, "end", text="Stamps", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Stamps/zgbs/handmade/11435490011/ref=zg_bs_nav_handmade_3_11435488011')
+    tree.insert(child22_9_2, "end", text="Stickers", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Stickers/zgbs/handmade/11435491011/ref=zg_bs_nav_handmade_3_11435490011')
+    tree.insert(child22_9_2, "end", text="Wall Calendars", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Wall-Calendars/zgbs/handmade/13542490011/ref=zg_bs_nav_handmade_3_11435491011')
     child22_10 = tree.insert(parent_item22, "end", text="Toys & Games")
-    child22_10_0 = tree.insert(child22_10, "end", text="All")
+    tree.insert(child22_10, "end", text="Baby & Toddler Toys", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Baby-Toddler-Toys/zgbs/handmade/14351279011/ref=zg_bs_nav_handmade_2_11403495011')
+    tree.insert(child22_10, "end", text="Dolls, Toy Figures & Accessories", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Dolls-Toy-Figures-Accessories/zgbs/handmade/14351291011/ref=zg_bs_nav_handmade_2_14351279011')
+    tree.insert(child22_10, "end", text="Lawn & Playground", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Lawn-Games-Playground-Equipment/zgbs/handmade/14351342011/ref=zg_bs_nav_handmade_2_14351291011')
+    tree.insert(child22_10, "end", text="Learning & Education", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Childrens-Learning-Development-Toys/zgbs/handmade/14351318011/ref=zg_bs_nav_handmade_2_14351342011')
+    tree.insert(child22_10, "end", text="Musical Toy Instruments", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Toy-Musical-Instruments/zgbs/handmade/14351319011/ref=zg_bs_nav_handmade_2_14351318011')
+    child22_10_0 = tree.insert(child22_10, "end", text="Novelty & Gag Toys")
+    tree.insert(child22_10_0, "end", text="Magnets & Magnetic Toys", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Magnet-Magnetic-Toys/zgbs/handmade/14351325011/ref=zg_bs_nav_handmade_3_14351320011')
+    tree.insert(child22_10_0, "end", text="Money Banks", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Money-Banks/zgbs/handmade/14351327011/ref=zg_bs_nav_handmade_3_14351325011')
+    tree.insert(child22_10_0, "end", text="Temporary Tattoos", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Childrens-Temporary-Tattoos/zgbs/handmade/14351331011/ref=zg_bs_nav_handmade_3_14351327011')
+    tree.insert(child22_10, "end", text="Plushies & Stuffed Animals", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Stuffed-Animals-Plushies/zgbs/handmade/14351334011/ref=zg_bs_nav_handmade_2_11403495011')
+    tree.insert(child22_10, "end", text="Pretend Play", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Pretend-Play-Toys/zgbs/handmade/14351335011/ref=zg_bs_nav_handmade_2_14351334011')
+    tree.insert(child22_10, "end", text="Puppets", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Puppets/zgbs/handmade/14351336011/ref=zg_bs_nav_handmade_2_14351335011')
+    tree.insert(child22_10, "end", text="Puzzles", tags='https://www.amazon.com/Best-Sellers-Handmade-Products-Handmade-Puzzles/zgbs/handmade/14351341011/ref=zg_bs_nav_handmade_2_14351336011')
 
     parent_item23 = tree.insert("", "end", text="Health & Household")
     child23_0 = tree.insert(parent_item23, "end", text="All")
@@ -1434,7 +1504,6 @@ def BuildingGUI():
     tree.bind("<<TreeviewSelect>>", on_select)
     
     
-    # tree.tag_bind("link", "<Button-1>", on_select)
 
     # Update the canvas window to fit the contents
     tree.update_idletasks()
