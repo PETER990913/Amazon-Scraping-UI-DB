@@ -3,8 +3,41 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from pathlib import Path
+import mysql.connector
+import json
+import csv
+import threading
+from selenium import webdriver
+from seleniumwire import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import undetected_chromedriver as uc
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.action_chains import ActionChains
+import pandas as pd
+import time
+import re
+import logging
+from collections import Counter
 
+# Replace 'your_excel_file.xlsx' with the path to your Excel file
+csv_file  = 'Result.csv'
 
+# Connect to the database
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="mydatabase"
+)
+
+# Check if connection was successful
+if mydb.is_connected():
+    print("Connected to MySQL database")
 # Initializing the global variants
 
 item_text = ""
@@ -12,23 +45,19 @@ item_link = ""
 Category_result = ""
 # defining the Scrape function
 
+def start_function():
+    global thread
+    thread = threading.Thread(target = scrape_site, args=())
+    thread.start()
+        
+def stop_function():
+    print("--------------------Scraping is stopped---------------------------")
+    global stop_event
+    stop_event = threading.Event()
+    stop_event.set()
+    
 def scrape_site():
     global Category_result
-    from selenium import webdriver
-    from seleniumwire import webdriver
-    from selenium.webdriver.common.keys import Keys
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import Select
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    import undetected_chromedriver as uc
-    from webdriver_manager.chrome import ChromeDriverManager
-    import pandas as pd
-    import time
-    import re
-    import logging
-    from collections import Counter
     
     logging.getLogger('webdriver_manager').disabled = True
     
@@ -71,8 +100,8 @@ def scrape_site():
     Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
     Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
     Product_price_Class2 = 'p13n-sc-price'
-    Next_page_Classname = 'a-last'
-    Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
+    Next_page_CSS_Selector = 'li[class="a-last"]'
+    # Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
     Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
@@ -83,7 +112,7 @@ def scrape_site():
     driver.maximize_window()
     URL = item_link[0]
     driver.get(URL)  
-    
+    i = 0
     j = 0    
     while j<2:
         tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
@@ -101,11 +130,11 @@ def scrape_site():
                 Product_title = "none"
             print("Product_title:", Product_title)
             
-            try:
-                Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
-            except:
-                Product_BSR = "none"
-            print('Product_BSR:', Product_BSR)
+            # try:
+            #     Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
+            # except:
+            #     Product_BSR = "none"
+            # print('Product_BSR:', Product_BSR)
             # Getting the product price
             try:
                 try:
@@ -120,11 +149,6 @@ def scrape_site():
             driver1.maximize_window()
             driver1.get(Product_URL)  
                      
-            # try:
-            #     Product_category = driver1.find_element(By.XPATH, Product_category_XPATH).text
-            #     Product_category = str(Product_category).replace('\n', '')
-            # except:
-            #     Product_category = "none"  
             Product_category = Category_result
             print("Product_category:", Product_category) 
                          
@@ -307,6 +331,10 @@ def scrape_site():
                 Product_UPSPSC = "none"   
                 Product_Special = "none" 
                      
+            i += 1
+            Product_BSR = "#" + str(i)
+            print('Product_BSR:', Product_BSR)
+            
             
             Product_title_list.append(Product_title)     
             Product_category_list.append(Product_category)        
@@ -341,7 +369,8 @@ def scrape_site():
             driver1.close()   
         j += 1
         try:
-            driver.find_element(By.CLASS_NAME, Next_page_Classname).click()
+            print("-----------------------------Clicking the next button now---------------------------")
+            driver.find_element(By.CSS_SELECTOR, Next_page_CSS_Selector).click()
             time.sleep(5)
         except:
             print("can't find the next button anymore")  
@@ -350,6 +379,108 @@ def scrape_site():
     
     print('---------------------------Saving result as an Excel--------------------------------')
     
+    
+def ImportDB():
+    global item_text
+    global Category_result
+    item_text = item_text.replace(' ', '').replace(',', '').replace('&', '')
+    Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
+    table_name = Category_result_text + '_' + item_text
+    cursor = mydb.cursor()
+    # Define the SQL statement to drop the table
+    drop_table_sql = f"DROP TABLE IF EXISTS {table_name}"
+
+    # Execute the SQL statement to drop the table
+    try:
+        cursor.execute(drop_table_sql)
+        print(f"Table '{item_text}' deleted successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    mydb.commit()
+    
+    # Define the CREATE TABLE statement
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS {} (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        product_location VARCHAR(255),
+        product_title VARCHAR(255),
+        product_imgurl VARCHAR(255),
+        product_brand VARCHAR(255),
+        product_rating VARCHAR(255),
+        number_reviews VARCHAR(255),
+        product_price VARCHAR(255),
+        Product_About_Item VARCHAR(255),
+        product_dim VARCHAR(255),
+        product_asin VARCHAR(255),
+        product_modelnumber VARCHAR(255),
+        product_department VARCHAR(255),
+        product_dateavailable VARCHAR(255),
+        Product_Special VARCHAR(255),
+        product_manufacturer VARCHAR(255),
+        product_country VARCHAR(255),
+        upspsc_code VARCHAR(255),
+        product_bsr VARCHAR(255),
+        number_solds VARCHAR(255),
+        product_specification TEXT,
+        product_description TEXT
+    );
+    """.format(table_name)
+
+    # Execute the CREATE TABLE statement
+    
+    cursor.execute(create_table_sql)
+
+    # Commit the changes to the database
+    mydb.commit()
+    cursor.close()
+
+    print("-------------------------Importing to MySQL is successfully started---------------------")
+    # Open the CSV file for reading
+    with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
+        # Create a CSV reader
+        reader = csv.reader(file)
+
+        # Skip the header row if it exists
+        next(reader, None)
+
+        # Iterate through each row
+        for row in reader:
+            # Access data in each column by index
+            product_location = row[1]
+            product_title = row[2]
+            product_imgurl = row[3]
+            product_brand = row[4]
+            product_rating = row[5]
+            number_reviews = row[6]
+            product_price = row[7]
+            Product_About_Item = row[8]
+            product_dim = row[9] 
+            product_asin = row[10]
+            product_modelnumber = row[11]
+            product_department = row[12]
+            product_dateavailable = row[13]
+            Product_Special = row[14]
+            product_manufacturer = row[15]
+            product_country = row[16]
+            upspsc_code = row[17]
+            product_bsr = row[18]
+            number_solds = row[19]
+            product_specification = row[20]
+            product_description = row[21]
+            
+            insert_sql = f"""INSERT INTO {table_name} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+            insert_values = [product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, Product_Special, product_manufacturer, product_country, upspsc_code, product_bsr, number_solds, product_specification, product_description]
+            print(insert_values)
+            try:
+                mycursor = mydb.cursor()
+                mycursor.execute(insert_sql, insert_values)
+                mydb.commit()
+                print(mycursor.rowcount, "rows were inserted.")
+            except Exception as e:
+                print("An error occurred:", str(e))
+    
+    mycursor.close()
+    print("-----------------------------Importing to DB is successfully finished--------------------------------------")    
 # defining the building GUI function
 
 def BuildingGUI():
@@ -1753,11 +1884,11 @@ def BuildingGUI():
 
     start_img = PhotoImage(file=relative_to_assets("start.png"))
     start_btn = Button(
-        image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : scrape_site(), activebackground= "#202020")
+        image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : start_function(), activebackground= "#202020")
     start_btn.place(x=75, y=720, width=100, height=47)
 
     stop_img = PhotoImage(file=relative_to_assets("stop.png"))    
-    stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
+    stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : stop_function(), activebackground= "#202020")
     stop_btn.place(x=325, y=720, width=100, height=47)
 
     Display_img = PhotoImage(file=relative_to_assets("result.png"))    
@@ -1765,7 +1896,7 @@ def BuildingGUI():
     Display_btn.place(x=575, y=720, width=100, height=47)
 
     Import_img = PhotoImage(file=relative_to_assets("import.png"))    
-    Import_btn = Button(image=Import_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
+    Import_btn = Button(image=Import_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : ImportDB(), activebackground= "#202020")
     Import_btn.place(x=825, y=720, width=100, height=47)
     
     window.resizable(False, False)
