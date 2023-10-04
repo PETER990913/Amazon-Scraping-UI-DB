@@ -48,6 +48,7 @@ def start_function():
     thread.start()
     
 def stop_function():
+    print("------------------------scraping is stopped---------------------------")
     global thread
     stop_event = threading.Event()
     stop_event.set() 
