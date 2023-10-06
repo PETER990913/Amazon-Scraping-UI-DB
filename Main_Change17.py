@@ -27,7 +27,7 @@ from collections import Counter
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
 csv_file  = 'Result.csv'
 
-# Connect to the database
+# Connect to the database 
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -489,54 +489,46 @@ def BuildingGUI():
     vscrollbar.config(command=tree.yview)
     # Getting the treeview text when it's selected
         
-    def start_function():
-        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list          
+    def get_childItems(item):
+        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list
+        child_items = tree.get_children(item)
+        child_len = len(child_items)
+        if(child_len != 0):
+            for child_item in child_items:
+                get_childItems(child_item)
+        else:
+            parents = []
+            item_text = tree.item(item)['text']
+            item_link = tree.item(item)['tags']   
+            print("item-----------------:", item_link)         
+            parent_item = tree.parent(item)
+            while parent_item != '':
+                parent_text = tree.item(parent_item, 'text')
+                parents.append(parent_text)
+                parent_item = tree.parent(parent_item)
+            current_item_text = tree.item(item, 'text')
+            parents.insert(0, current_item_text)
+            parents.reverse()
+            Category_result = ' > '.join(parents)
+            item_link_list.append(item_link[0])
+            category_result_list.append(Category_result)
+            item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '')
+            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
+            table_name = Category_result_text + '_' + item_text_0
+            table_name_list.append(table_name)
+            return
+            
+        
+    def start_function():       
         selected_items = tree.selection()
         for selected_item in selected_items:            
             
-            child_items = tree.get_children(selected_item)
-            if len(child_items):                
-                for child_item in child_items:
-                    parents1 = []
-                    child_item_text = tree.item(child_item, "text")
-                    child_item_tags = str(tree.item(child_item, "tags")).replace('(', '').replace(')', '').replace(',', '').replace("'", "")
-                    parent_item = tree.parent(child_item)
-                    while parent_item != '':
-                        parent_text = tree.item(parent_item, 'text')
-                        parents1.append(parent_text)
-                        parent_item = tree.parent(parent_item)
-                    current_item_text = tree.item(child_item, 'text')
-                    parents1.insert(0, current_item_text)
-                    parents1.reverse()
-                    Category_result = ' > '.join(parents1)
-                    item_link_list.append(child_item_tags)
-                    category_result_list.append(Category_result)
-                    item_text_0 = child_item_text.replace(' ', '').replace(',', '').replace('&', '')
-                    Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
-                    table_name = Category_result_text + '_' + item_text_0
-                    table_name_list.append(table_name)
-            else:
-                parents = []
-                item_text = tree.item(selected_item)['text']
-                item_link = tree.item(selected_item)['tags']            
-                parent_item = tree.parent(selected_item)
-                while parent_item != '':
-                    parent_text = tree.item(parent_item, 'text')
-                    parents.append(parent_text)
-                    parent_item = tree.parent(parent_item)
-                current_item_text = tree.item(selected_item, 'text')
-                parents.insert(0, current_item_text)
-                parents.reverse()
-                Category_result = ' > '.join(parents)
-                item_link_list.append(item_link[0])
-                category_result_list.append(Category_result)
-                item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '')
-                Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
-                table_name = Category_result_text + '_' + item_text_0
-                table_name_list.append(table_name)
-        print(item_link_list)
-        print(category_result_list) 
-        print(table_name_list)               
+            get_childItems(selected_item)            
+        
+        print("item_link_test")
+        print(item_link_list, len(item_link_list))        
+        print(category_result_list, len(category_result_list)) 
+        print(table_name_list, len(table_name_list))               
         global thread
         thread = threading.Thread(target = scrape_site, args=())
         thread.start()
@@ -934,12 +926,12 @@ def BuildingGUI():
     tree.insert(child11_0_5, "end", text="Home Button Stickers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Home-Button-Stickers/zgbs/wireless/21209119011/ref=zg_bs_nav_wireless_3_21209101011')
     tree.insert(child11_0_5, "end", text="Phone Charms", tags='https://amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Charms/zgbs/wireless/2407779011/ref=zg_bs_nav_wireless_3_21209101011')
     child11_0_6 = tree.insert(child11_0, "end", text="Gaming Accessories")
-    tree.insert(child11_0_6, "end", text="Controllers")
-    tree.insert(child11_0_6, "end", text="Finger Sleeves")
-    tree.insert(child11_0_6, "end", text="Joysticks")
-    tree.insert(child11_0_6, "end", text="Screen Expanders & Magnifiers")
-    tree.insert(child11_0_6, "end", text="Triggers")
-    tree.insert(child11_0_6, "end", text="Virtual Reality (VR) Headsets")
+    tree.insert(child11_0_6, "end", text="Controllers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Gaming-Controllers/zgbs/wireless/21209114011/ref=zg_bs_nav_wireless_3_21209102011')
+    tree.insert(child11_0_6, "end", text="Finger Sleeves", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Gaming-Finger-Sleeves/zgbs/wireless/21209112011/ref=zg_bs_nav_wireless_3_21209114011')
+    tree.insert(child11_0_6, "end", text="Joysticks", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Gaming-Joysticks/zgbs/wireless/21209113011/ref=zg_bs_nav_wireless_3_21209112011')
+    tree.insert(child11_0_6, "end", text="Screen Expanders & Magnifiers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Screen-Expanders-Magnifiers/zgbs/wireless/21209099011/ref=zg_bs_nav_wireless_3_21209113011')
+    tree.insert(child11_0_6, "end", text="Triggers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Gaming-Triggers/zgbs/wireless/21209115011/ref=zg_bs_nav_wireless_3_21209113011')
+    tree.insert(child11_0_6, "end", text="Virtual Reality (VR) Headsets", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Virtual-Reality-VR-Headsets/zgbs/wireless/14775002011/ref=zg_bs_nav_wireless_3_21209115011')
     tree.insert(child11_0, "end", text="Grips", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Grips/zgbs/wireless/21209098011/ref=zg_bs_nav_wireless_2_2407755011')
     child11_0_8 = tree.insert(child11_0, "end", text="Headphones, Earbuds & Accessories")
     tree.insert(child11_0_8, "end", text="Amplifiers", tags='https://www.amazon.com/Best-Sellers-Electronics-Headphone-Amps/zgbs/electronics/13880161/ref=zg_bs_nav_electronics_4_24046923011')
@@ -948,10 +940,10 @@ def BuildingGUI():
     tree.insert(child11_0_8, "end", text="Earpads", tags='https://www.amazon.com/Best-Sellers-Electronics-Headphone-Earpads/zgbs/electronics/13880181/ref=zg_bs_nav_electronics_4_2267281011')
     tree.insert(child11_0_8, "end", text="Extension Cords", tags='https://www.amazon.com/Best-Sellers-Electronics-Headphone-Extension-Cords/zgbs/electronics/13880171/ref=zg_bs_nav_electronics_4_13880181')
     child11_0_8_1 = tree.insert(child11_0_8, "end", text="Headphones")
-    tree.insert(child11_0_8_1, "end", text="Earbud Headphones")
-    tree.insert(child11_0_8_1, "end", text="On-Ear Headphones")
-    tree.insert(child11_0_8_1, "end", text="Open-Ear Headphones")
-    tree.insert(child11_0_8_1, "end", text="Over-Ear Headphones")
+    tree.insert(child11_0_8_1, "end", text="Earbud Headphones", tags='https://www.amazon.com/Best-Sellers-Electronics-Earbud-In-Ear-Headphones/zgbs/electronics/12097478011/ref=zg_bs_nav_electronics_2_172541')
+    tree.insert(child11_0_8_1, "end", text="On-Ear Headphones", tags='https://www.amazon.com/Best-Sellers-Electronics-On-Ear-Headphones/zgbs/electronics/12097480011/ref=zg_bs_nav_electronics_2_12097478011')
+    tree.insert(child11_0_8_1, "end", text="Open-Ear Headphones", tags='https://www.amazon.com/Best-Sellers-Electronics-Open-Ear-Headphones/zgbs/electronics/99530371011/ref=zg_bs_nav_electronics_2_12097480011')
+    tree.insert(child11_0_8_1, "end", text="Over-Ear Headphones", tags='https://www.amazon.com/Best-Sellers-Electronics-Over-Ear-Headphones/zgbs/electronics/12097479011/ref=zg_bs_nav_electronics_2_99530371011')
     tree.insert(child11_0, "end", text="Item Finders", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Item-Finders/zgbs/wireless/18022313011/ref=zg_bs_nav_wireless_2_2407755011')
     tree.insert(child11_0, "end", text="Lanyards & Wrist Straps", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Lanyards-Wrist-Straps/zgbs/wireless/21209103011/ref=zg_bs_nav_wireless_2_2407755011')
     child11_0_11 = tree.insert(child11_0, "end", text="Maintenance, Upkeep & Repairs")
@@ -960,9 +952,9 @@ def BuildingGUI():
     tree.insert(child11_0_11, "end", text="Lens Protectors", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Lens-Protectors/zgbs/wireless/21550399011/ref=zg_bs_nav_wireless_3_21209119011')
     tree.insert(child11_0_11, "end", text="Repair Kits", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Repair-Kits/zgbs/wireless/21209121011/ref=zg_bs_nav_wireless_3_21550399011')
     child11_0_11_0 = tree.insert(child11_0_11, "end", text="Replacement Parts")
-    tree.insert(child11_0_11_0, "end", text="Back Covers")
-    tree.insert(child11_0_11_0, "end", text="Batteries")
-    tree.insert(child11_0_11_0, "end", text="Screens")
+    tree.insert(child11_0_11_0, "end", text="Back Covers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Replacement-Cell-Phone-Backs/zgbs/wireless/19633580011/ref=zg_bs_nav_wireless_4_2407780011')
+    tree.insert(child11_0_11_0, "end", text="Batteries", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Replacement-Batteries/zgbs/wireless/7073959011/ref=zg_bs_nav_wireless_4_19633580011')
+    tree.insert(child11_0_11_0, "end", text="Screens", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Replacement-Cell-Phone-Screens/zgbs/wireless/19633579011/ref=zg_bs_nav_wireless_4_7073959011')
     tree.insert(child11_0_11, "end", text="SIM Card Tools & Accessories", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-SIM-Card-Tools-Accessories/zgbs/wireless/14674869011/ref=zg_bs_nav_wireless_3_21209105011')
     tree.insert(child11_0_11, "end", text="Screen Protectors", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Screen-Protectors/zgbs/wireless/2407781011/ref=zg_bs_nav_wireless_3_14674869011')
     tree.insert(child11_0, "end", text="Micro SD Cards", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Micro-SD-Memory-Cards/zgbs/wireless/3015433011/ref=zg_bs_nav_wireless_2_2407755011')
@@ -990,13 +982,13 @@ def BuildingGUI():
     tree.insert(child11_0, "end", text="Signal Boosters", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Signal-Boosters/zgbs/wireless/2407782011/ref=zg_bs_nav_wireless_2_2407755011')
     tree.insert(child11_0, "end", text="Single Ear Bluetooth Headsets", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Single-Ear-Bluetooth-Cell-Phone-Headsets/zgbs/wireless/18021376011/ref=zg_bs_nav_wireless_2_2407782011')
     child11_0_16 = tree.insert(child11_0, "end", text="Smartwatch Accessories")
-    tree.insert(child11_0_16, "end", text="Smartwatch Bands")
-    tree.insert(child11_0_16, "end", text="Smartwatch Cables & Chargers")
-    tree.insert(child11_0_16, "end", text="Smartwatch Cases")
-    tree.insert(child11_0_16, "end", text="Smartwatch Cases with Band")
-    tree.insert(child11_0_16, "end", text="Smartwatch Necklaces")
-    tree.insert(child11_0_16, "end", text="Smartwatch Screen Protectors")
-    tree.insert(child11_0_16, "end", text="Smartwatch Stickers")   
+    tree.insert(child11_0_16, "end", text="Smartwatch Bands", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Bands/zgbs/wireless/11591904011/ref=zg_bs_nav_wireless_3_7939902011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Cables & Chargers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Cables-Chargers/zgbs/wireless/11591898011/ref=zg_bs_nav_wireless_3_11591904011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Cases", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Cases/zgbs/wireless/18031880011/ref=zg_bs_nav_wireless_3_11591898011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Cases with Band", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Cases-with-Band/zgbs/wireless/18031881011/ref=zg_bs_nav_wireless_3_18031880011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Necklaces", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Necklaces/zgbs/wireless/18018228011/ref=zg_bs_nav_wireless_3_18031881011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Screen Protectors", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Screen-Protectors/zgbs/wireless/11591906011/ref=zg_bs_nav_wireless_3_18018228011')
+    tree.insert(child11_0_16, "end", text="Smartwatch Stickers", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Smartwatch-Stickers/zgbs/wireless/11591908011/ref=zg_bs_nav_wireless_3_11591906011')   
     tree.insert(child11_0, "end", text="Stands", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Cell-Phone-Stands/zgbs/wireless/23690036011/ref=zg_bs_nav_wireless_2_2407755011')
     tree.insert(child11_0, "end", text="Stylus Pens", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-Styluses/zgbs/wireless/11548954011/ref=zg_bs_nav_wireless_2_23690036011')
     tree.insert(child11_0, "end", text="UV Phone Sterilizer Boxes", tags='https://www.amazon.com/Best-Sellers-Cell-Phones-Accessories-UV-Phone-Sterilizer-Boxes/zgbs/wireless/21268231011/ref=zg_bs_nav_wireless_2_11548954011')
@@ -1634,16 +1626,16 @@ def BuildingGUI():
     tree.insert(parent_item38, "end", text="Shark Tank Gifts", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Amazon-Launchpad-Shark-Tank-Gifts/zgbs/boost/15684306011/ref=zg_bs_nav_boost_1_15684301011')
     tree.insert(parent_item38, "end", text="Shark Tank gift ideas", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Shark-Tank-gift-ideas/zgbs/boost/21491764011/ref=zg_bs_nav_boost_1_15684306011')
     tree.insert(parent_item38, "end", text="Shop Local", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Shop-Local/zgbs/boost/23602498011/ref=zg_bs_nav_boost_1_21491764011')
-    tree.insert(parent_item38, "end", text="Social Good Brand Stories", tags='')
-    tree.insert(parent_item38, "end", text="Sports & Outdoors", tags='')
-    tree.insert(parent_item38, "end", text="Sports & Outdoors Gifts", tags='')
-    tree.insert(parent_item38, "end", text="Top-rated Electronics", tags='')
-    tree.insert(parent_item38, "end", text="Top-rated Gifts", tags='')
-    tree.insert(parent_item38, "end", text="Toys", tags='')
-    tree.insert(parent_item38, "end", text="Unboxing Unique Finds", tags='')
-    tree.insert(parent_item38, "end", text="Unique Picks", tags='')
-    tree.insert(parent_item38, "end", text="Warm Weather Refresh", tags='')
-    tree.insert(parent_item38, "end", text="Women-owned Brand Stories", tags='')
+    tree.insert(parent_item38, "end", text="Social Good Brand Stories", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Social-Good-Brand-Stories/zgbs/boost/21217719011/ref=zg_bs_nav_boost_1_23602498011')
+    tree.insert(parent_item38, "end", text="Sports & Outdoors", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Unique-Sports-Outdoors/zgbs/boost/21179678011/ref=zg_bs_nav_boost_1_21217719011')
+    tree.insert(parent_item38, "end", text="Sports & Outdoors Gifts", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Sports-Outdoors-Gifts/zgbs/boost/21425079011/ref=zg_bs_nav_boost_1_21179678011')
+    tree.insert(parent_item38, "end", text="Top-rated Electronics", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Top-rated-Electronics/zgbs/boost/23602499011/ref=zg_bs_nav_boost_1_21425079011')
+    tree.insert(parent_item38, "end", text="Top-rated Gifts", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Unique-Top-rated-Gifts/zgbs/boost/21403265011/ref=zg_bs_nav_boost_1_23602499011')
+    tree.insert(parent_item38, "end", text="Toys", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Unique-Toys/zgbs/boost/21179677011/ref=zg_bs_nav_boost_1_21403265011')
+    tree.insert(parent_item38, "end", text="Unboxing Unique Finds", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Unboxing-Unique-Finds/zgbs/boost/23680130011/ref=zg_bs_nav_boost_1_21179677011')
+    tree.insert(parent_item38, "end", text="Unique Picks", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Unique-Picks/zgbs/boost/15684313011/ref=zg_bs_nav_boost_1_23680130011')
+    tree.insert(parent_item38, "end", text="Warm Weather Refresh", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Warm-Weather-Refresh/zgbs/boost/21614090011/ref=zg_bs_nav_boost_1_15684313011')
+    tree.insert(parent_item38, "end", text="Women-owned Brand Stories", tags='https://www.amazon.com/Best-Sellers-Unique-Finds-Women-owned-Brand-Stories/zgbs/boost/21217720011/ref=zg_bs_nav_boost_1_21614090011')
 
 
     parent_item39 = tree.insert("", "end", text="Video Games")
