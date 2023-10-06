@@ -27,7 +27,7 @@ from collections import Counter
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
 csv_file  = 'Result.csv'
 
-# Connect to the database
+# Connect to the database 
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -495,7 +495,7 @@ def BuildingGUI():
         for selected_item in selected_items:            
             
             child_items = tree.get_children(selected_item)
-            if len(child_items):                
+            if len(child_items):               
                 for child_item in child_items:
                     parents1 = []
                     child_item_text = tree.item(child_item, "text")
@@ -1608,40 +1608,7 @@ def BuildingGUI():
     child37_0 = tree.insert(parent_item37, "end", text="All")
 
     parent_item38 = tree.insert("", "end", text="Unique Finds")
-    tree.insert(parent_item38, "end", text="4-Star Store")
-    tree.insert(parent_item38, "end", text="All Gifts")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
-    tree.insert(parent_item38, "end", text="All")
+    child38_0 = tree.insert(parent_item38, "end", text="All")
 
 
     parent_item39 = tree.insert("", "end", text="Video Games")
