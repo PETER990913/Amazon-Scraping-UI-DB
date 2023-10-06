@@ -43,12 +43,10 @@ if mydb.is_connected():
 item_text = ""
 item_link = ""
 Category_result = ""
+item_link_list = []
+category_result_list = []
+table_name_list = []
 # defining the Scrape function
-
-def start_function():
-    global thread
-    thread = threading.Thread(target = scrape_site, args=())
-    thread.start()
         
 def stop_function():
     print("--------------------Scraping is stopped---------------------------")
@@ -57,8 +55,8 @@ def stop_function():
     stop_event.set()
     
 def scrape_site():
-    global Category_result
-    
+    global category_result_list, table_name_list
+    global item_link_list
     logging.getLogger('webdriver_manager').disabled = True
     
     SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62'
@@ -70,28 +68,8 @@ def scrape_site():
             'no_proxy': 'localhost:127.0.0.1'
         }
     }
-    # initial result values
-    Product_title_list = []
-    Product_image_URL_list = []
-    Product_brand_list = []
-    Product_Rate_list = []
-    Product_Rating_list = []
-    Product_price_list = []
-    Product_ASIN_list = []
-    Product_Dim_list = []
-    Product_BSR_list = []
-    Product_Month_list = []
-    Product_specification_list = []
-    Product_description_list = []
-    Product_category_list = []
-    Product_Item_list = []
-    Product_Department_list = []
-    Product_Date_list = []
-    Product_Manu_list = []
-    Product_Country_list = []
-    Product_UPSPSC_list = []
-    Product_Special_list = []
-    Product_About_Item_list = []
+    
+    
     # Defining XPATH, CLASSNAME etc...
     Product_tables_CSS_SELECTOR = 'div[class="a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content"]'
     Product_image_URL_XPATH = '//*[@id="landingImage"]'
@@ -100,21 +78,99 @@ def scrape_site():
     Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
     Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
     Product_price_Class2 = 'p13n-sc-price'
-    Next_page_CSS_Selector = 'li[class="a-last"]'
     # Product_BSR_CSS_SELECTOR = 'span[class="zg-bdg-text"]'
     Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
     Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
     Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
-    print("link", item_link[0])
     
     print('--------------------Automation scraping is successfully started-------------------')
     driver = webdriver.Chrome(seleniumwire_options=proxy_options)        
     driver.maximize_window()
-    URL = item_link[0]
-    driver.get(URL)  
-    i = 0
-    j = 0    
-    while j<2:
+    for k in range(0, len(item_link_list)):
+        # initial result values
+        Product_title_list = []
+        Product_image_URL_list = []
+        Product_brand_list = []
+        Product_Rate_list = []
+        Product_Rating_list = []
+        Product_price_list = []
+        Product_ASIN_list = []
+        Product_Dim_list = []
+        Product_BSR_list = []
+        Product_Month_list = []
+        Product_specification_list = []
+        Product_description_list = []
+        Product_category_list = []
+        Product_Item_list = []
+        Product_Department_list = []
+        Product_Date_list = []
+        Product_Manu_list = []
+        Product_Country_list = []
+        Product_UPSPSC_list = []
+        Product_Special_list = []
+        Product_About_Item_list = []
+        print("k:", k)
+        URL = item_link_list[k][0]
+        print("URL:", URL)
+        Product_location = category_result_list[k]
+        print("Category:", Product_location)
+        
+        Product_category = Product_location
+        Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('>', '_')
+        
+        #Create table with excel name
+        cursor = mydb.cursor()
+        # Define the SQL statement to drop the table
+        drop_table_sql = f"DROP TABLE IF EXISTS {table_name_list[k]}"
+
+        # Execute the SQL statement to drop the table
+        try:
+            cursor.execute(drop_table_sql)
+            print(f"Table '{item_text}' deleted successfully.")
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+        mydb.commit()
+        
+        #---------CREATE TABLE START------------------------
+        # Define the CREATE TABLE statement
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS {} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            product_location VARCHAR(255),
+            product_title VARCHAR(255),
+            product_imgurl VARCHAR(255),
+            product_brand VARCHAR(255),
+            product_rating VARCHAR(255),
+            number_reviews VARCHAR(255),
+            product_price VARCHAR(255),
+            Product_About_Item VARCHAR(255),
+            product_dim VARCHAR(255),
+            product_asin VARCHAR(255),
+            product_modelnumber VARCHAR(255),
+            product_department VARCHAR(255),
+            product_dateavailable VARCHAR(255),
+            Product_Special VARCHAR(255),
+            product_manufacturer VARCHAR(255),
+            product_country VARCHAR(255),
+            upspsc_code VARCHAR(255),
+            product_bsr VARCHAR(255),
+            number_solds VARCHAR(255),
+            product_specification TEXT,
+            product_description TEXT
+        );
+        """.format(table_name_list[k])
+
+        # Execute the CREATE TABLE statement
+        
+        cursor.execute(create_table_sql)
+
+        # Commit the changes to the database
+        mydb.commit()
+        cursor.close()
+        #---------CREATE TABLE END------------------------
+    
+        driver.get(URL)  
+        i = 0
         tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
         print(len(tables))
         for table in tables:
@@ -129,13 +185,6 @@ def scrape_site():
             except:
                 Product_title = "none"
             print("Product_title:", Product_title)
-            
-            # try:
-            #     Product_BSR = table.find_element(By.CSS_SELECTOR, Product_BSR_CSS_SELECTOR).text
-            # except:
-            #     Product_BSR = "none"
-            # print('Product_BSR:', Product_BSR)
-            # Getting the product price
             try:
                 try:
                     Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
@@ -148,10 +197,9 @@ def scrape_site():
             driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
             driver1.maximize_window()
             driver1.get(Product_URL)  
-                     
-            Product_category = Category_result
+                    
             print("Product_category:", Product_category) 
-                         
+                        
             try:
                 Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
             except:
@@ -330,7 +378,7 @@ def scrape_site():
                 Product_Country = "none"    
                 Product_UPSPSC = "none"   
                 Product_Special = "none" 
-                     
+                    
             i += 1
             Product_BSR = "#" + str(i)
             print('Product_BSR:', Product_BSR)
@@ -358,118 +406,9 @@ def scrape_site():
             Product_Month_list.append(Product_Month)
             Product_About_Item_list.append(Product_About_Item)
             
-            
-            
-            dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
-            'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
-            'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list}
-            df = pd.DataFrame(dict)
-            df.to_csv('Result.csv') 
-            
-            driver1.close()   
-        j += 1
-        try:
-            print("-----------------------------Clicking the next button now---------------------------")
-            driver.find_element(By.CSS_SELECTOR, Next_page_CSS_Selector).click()
-            time.sleep(5)
-        except:
-            print("can't find the next button anymore")  
-    print('--------------------Automation scraping is successfully finished--------------------')   
-    # Saving as EXCEL file
-    
-    print('---------------------------Saving result as an Excel--------------------------------')
-    
-    
-def ImportDB():
-    global item_text
-    global Category_result
-    item_text = item_text.replace(' ', '').replace(',', '').replace('&', '')
-    Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
-    table_name = Category_result_text + '_' + item_text
-    cursor = mydb.cursor()
-    # Define the SQL statement to drop the table
-    drop_table_sql = f"DROP TABLE IF EXISTS {table_name}"
-
-    # Execute the SQL statement to drop the table
-    try:
-        cursor.execute(drop_table_sql)
-        print(f"Table '{item_text}' deleted successfully.")
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    mydb.commit()
-    
-    # Define the CREATE TABLE statement
-    create_table_sql = """
-    CREATE TABLE IF NOT EXISTS {} (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        product_location VARCHAR(255),
-        product_title VARCHAR(255),
-        product_imgurl VARCHAR(255),
-        product_brand VARCHAR(255),
-        product_rating VARCHAR(255),
-        number_reviews VARCHAR(255),
-        product_price VARCHAR(255),
-        Product_About_Item VARCHAR(255),
-        product_dim VARCHAR(255),
-        product_asin VARCHAR(255),
-        product_modelnumber VARCHAR(255),
-        product_department VARCHAR(255),
-        product_dateavailable VARCHAR(255),
-        Product_Special VARCHAR(255),
-        product_manufacturer VARCHAR(255),
-        product_country VARCHAR(255),
-        upspsc_code VARCHAR(255),
-        product_bsr VARCHAR(255),
-        number_solds VARCHAR(255),
-        product_specification TEXT,
-        product_description TEXT
-    );
-    """.format(table_name)
-
-    # Execute the CREATE TABLE statement
-    
-    cursor.execute(create_table_sql)
-
-    # Commit the changes to the database
-    mydb.commit()
-    cursor.close()
-
-    print("-------------------------Importing to MySQL is successfully started---------------------")
-    # Open the CSV file for reading
-    with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
-        # Create a CSV reader
-        reader = csv.reader(file)
-
-        # Skip the header row if it exists
-        next(reader, None)
-
-        # Iterate through each row
-        for row in reader:
-            # Access data in each column by index
-            product_location = row[1]
-            product_title = row[2]
-            product_imgurl = row[3]
-            product_brand = row[4]
-            product_rating = row[5]
-            number_reviews = row[6]
-            product_price = row[7]
-            Product_About_Item = row[8]
-            product_dim = row[9] 
-            product_asin = row[10]
-            product_modelnumber = row[11]
-            product_department = row[12]
-            product_dateavailable = row[13]
-            Product_Special = row[14]
-            product_manufacturer = row[15]
-            product_country = row[16]
-            upspsc_code = row[17]
-            product_bsr = row[18]
-            number_solds = row[19]
-            product_specification = row[20]
-            product_description = row[21]
-            
-            insert_sql = f"""INSERT INTO {table_name} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
-            insert_values = [product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, Product_Special, product_manufacturer, product_country, upspsc_code, product_bsr, number_solds, product_specification, product_description]
+            insert_sql = f"""INSERT INTO {table_name_list[k]} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+            insert_values = [Product_category, Product_title, Product_image_URL, Product_brand, Product_Rate, Product_Rating, Product_price, Product_About_Item, Product_Dim, Product_ASIN, 
+                             Product_Item, Product_Department, Product_Date, Product_Special, Product_Manu, Product_Country, Product_UPSPSC, Product_BSR, Product_Month, Product_specification, Product_description]
             print(insert_values)
             try:
                 mycursor = mydb.cursor()
@@ -478,9 +417,23 @@ def ImportDB():
                 print(mycursor.rowcount, "rows were inserted.")
             except Exception as e:
                 print("An error occurred:", str(e))
+                
+            #INSERT INTO EXCEL_NME TABLE -------------END------------------------
+            
+            dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
+            'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
+            'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list}
+            df = pd.DataFrame(dict)
+            df.to_csv(f'{Excel_name}.csv') 
+            
+            driver1.close()         
+       
+    print('--------------------Automation scraping is successfully finished--------------------')   
+    # Saving as EXCEL file
     
-    mycursor.close()
-    print("-----------------------------Importing to DB is successfully finished--------------------------------------")    
+    print('---------------------------Saving result as an Excel--------------------------------')    
+    
+   
 # defining the building GUI function
 
 def BuildingGUI():
@@ -535,26 +488,35 @@ def BuildingGUI():
     # Configure the scrollbar to work with the Treeview
     vscrollbar.config(command=tree.yview)
     # Getting the treeview text when it's selected
-    def on_select(event):
-        global item_link, item_text, Category_result
-        parents = []                
-        selected_item = tree.selection()[0]
-        item_text = tree.item(selected_item)['text']
-        item_link = tree.item(selected_item)['tags']
-        parent_item = tree.parent(selected_item)
-        while parent_item != '':
-            parent_text = tree.item(parent_item, 'text')
-            parents.append(parent_text)
-            parent_item = tree.parent(parent_item)
-        current_item_text = tree.item(selected_item, 'text')
-        parents.insert(0, current_item_text)
-        parents.reverse()
-        Category_result = ' > '.join(parents)
-        # print(Category_result)  
-        print(item_text)
-        print(item_link)
-        print(Category_result)
-    # Insert data into the Treeview
+        
+    def start_function():
+        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list          
+        selected_items = tree.selection()
+        for selected_item in selected_items:
+            parents = []
+            item_text = tree.item(selected_item)['text']
+            item_link = tree.item(selected_item)['tags']            
+            parent_item = tree.parent(selected_item)
+            while parent_item != '':
+                parent_text = tree.item(parent_item, 'text')
+                parents.append(parent_text)
+                parent_item = tree.parent(parent_item)
+            current_item_text = tree.item(selected_item, 'text')
+            parents.insert(0, current_item_text)
+            parents.reverse()
+            Category_result = ' > '.join(parents)
+            item_link_list.append(item_link)
+            category_result_list.append(Category_result)
+            item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '')
+            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '')
+            table_name = Category_result_text + '_' + item_text_0
+            table_name_list.append(table_name)
+        print(item_link_list)
+        print(category_result_list) 
+        print(table_name_list)               
+        global thread
+        thread = threading.Thread(target = scrape_site, args=())
+        thread.start()
     
     # Amazon Devices & Accessories
     parent_item = tree.insert("", "end", text="Amazon Devices & Accessories")
@@ -1629,7 +1591,6 @@ def BuildingGUI():
     parent_item39 = tree.insert("", "end", text="Video Games")
     child39_0 = tree.insert(parent_item39, "end", text="All")
 
-    tree.bind("<<TreeviewSelect>>", on_select)
     
     
 
@@ -1891,15 +1852,7 @@ def BuildingGUI():
 
     stop_img = PhotoImage(file=relative_to_assets("stop.png"))    
     stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : stop_function(), activebackground= "#202020")
-    stop_btn.place(x=325, y=720, width=100, height=47)
-
-    Display_img = PhotoImage(file=relative_to_assets("result.png"))    
-    Display_btn = Button(image=Display_img, borderwidth=0, highlightthickness=0, relief="flat",activebackground= "#202020")
-    Display_btn.place(x=575, y=720, width=100, height=47)
-
-    Import_img = PhotoImage(file=relative_to_assets("import.png"))    
-    Import_btn = Button(image=Import_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : ImportDB(), activebackground= "#202020")
-    Import_btn.place(x=825, y=720, width=100, height=47)
+    stop_btn.place(x=825, y=720, width=100, height=47)
     
     window.resizable(False, False)
     # Run the main event loop to display the window
