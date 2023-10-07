@@ -115,7 +115,7 @@ def scrape_site():
         print("Category:", Product_location)
         
         Product_category = Product_location
-        Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('>', '_')
+        Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_')
         
         #Create table with excel name
         cursor = mydb.cursor()
