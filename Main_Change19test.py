@@ -24,7 +24,6 @@ import re
 import logging
 from collections import Counter
 import datetime
-global timestamp
 # Get the current date and time
 now = datetime.datetime.now()
 
@@ -52,6 +51,19 @@ Category_result = ""
 item_link_list = []
 category_result_list = []
 table_name_list = []
+Product_URL_entry = None
+Product_title_entry = None
+Product_Price_entry = None
+Product_Brand_entry = None
+Product_Rating_entry = None
+Product_review_entry = None
+Product_BSR_entry = None
+Product_asin_entry = None
+Product_image_URL_entry = None
+Product_dimension_entry = None
+Product_Date_entry = None
+Product_timestamp_entry = None
+Product_location_entry = None
 # defining the Scrape function
         
 def stop_function():
@@ -61,7 +73,8 @@ def stop_function():
     stop_event.set()
     
 def scrape_site():
-    global timestamp
+    global timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
+             
     df2 = pd.read_csv("configuration.csv")
     excel_link = df2.Item_link
     category_results_list = df2.Category_result
@@ -128,7 +141,8 @@ def scrape_site():
         
         Product_category = Product_location
         Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '')
-        
+        Product_location_entry.delete(0, END)            
+        Product_location_entry.insert(0, Product_category) 
         #Create table with excel name
         cursor = mydb.cursor()
         # Define the SQL statement to drop the table
@@ -191,12 +205,16 @@ def scrape_site():
             except:
                 Product_URL = "none"
             print("Product_URL:", Product_URL)
+            Product_URL_entry.delete(0, END)            
+            Product_URL_entry.insert(0, Product_URL) 
             # Getting the product title
             try:
                 Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
             except:
                 Product_title = "none"
             print("Product_title:", Product_title)
+            Product_title_entry.delete(0, END)            
+            Product_title_entry.insert(0, Product_title) 
             try:
                 try:
                     Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
@@ -204,6 +222,8 @@ def scrape_site():
                     Product_price = table.find_element(By.CLASS_NAME, Product_price_Class2).text                  
             except:
                 Product_price = "none"
+            Product_Price_entry.delete(0, END)            
+            Product_Price_entry.insert(0, Product_price)            
             print("Product_price:", Product_price)
             
             driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
@@ -217,7 +237,8 @@ def scrape_site():
             except:
                 Product_image_URL = "none"
             print("Product_image_URL:", Product_image_URL)
-            
+            Product_image_URL_entry.delete(0, END)            
+            Product_image_URL_entry.insert(0, Product_image_URL)             
             try:
                 Product_brand_text = driver1.find_element(By.XPATH, Product_brand_XPATH).text
                 Product_brand = "none"
@@ -226,7 +247,9 @@ def scrape_site():
                 elif ("Visit" in Product_brand_text):
                     Product_brand = str(Product_brand_text).replace('Visit the', '').replace(' ', '').replace('Store', '')                
             except:
-                Product_brand = "none"            
+                Product_brand = "none"  
+            Product_Brand_entry.delete(0, END)            
+            Product_Brand_entry.insert(0, Product_brand)          
             print("Product_brand:", Product_brand)
             
             try:
@@ -234,13 +257,17 @@ def scrape_site():
             except:
                 Product_Rate = "none"
             print("Product_Rate:", Product_Rate)
+            Product_Rating_entry.delete(0, END)            
+            Product_Rating_entry.insert(0, Product_Rate)
             
             try:
                 Product_Rating = driver1.find_element(By.XPATH, Product_Rating_XPATH).text
             except:
                 Product_Rating = "none"
             Product_Rating = str(Product_Rating).replace('ratings', '').replace(' ', '')
-            print("Product_Rating:", Product_Rating)  
+            print("Product_Rating:", Product_Rating)
+            Product_review_entry.delete(0, END)            
+            Product_review_entry.insert(0, Product_Rating)  
             
             try:
                 Product_Month = driver1.find_element(By.XPATH, Product_Month_Sold_XPATH).text
@@ -390,9 +417,18 @@ def scrape_site():
                 Product_Country = "none"    
                 Product_UPSPSC = "none"   
                 Product_Special = "none" 
-                    
+            Product_asin_entry.delete(0, END)            
+            Product_asin_entry.insert(0, Product_ASIN)  
+            Product_dimension_entry.delete(0, END)            
+            Product_dimension_entry.insert(0, Product_Dim)  
+            Product_Date_entry.delete(0, END)            
+            Product_Date_entry.insert(0, Product_Date) 
+            Product_timestamp_entry.delete(0, END)            
+            Product_timestamp_entry.insert(0, timestamp)        
             i += 1
             Product_BSR = "#" + str(i)
+            Product_BSR_entry.delete(0, END)            
+            Product_BSR_entry.insert(0, Product_BSR) 
             print('Product_BSR:', Product_BSR)
             
             print('timestamp:', timestamp)
@@ -440,7 +476,6 @@ def scrape_site():
             df.to_csv(f'{Excel_name}.csv') 
             
             driver1.close()         
-       
     print('--------------------Automation scraping is successfully finished--------------------')   
     # Saving as EXCEL file
     
@@ -451,6 +486,7 @@ def scrape_site():
 # defining the building GUI function
 
 def BuildingGUI():
+    global Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
     # Create a window object
     OUTPUT_PATH = Path(__file__).parent
     ASSETS_PATH = OUTPUT_PATH / Path("assets/")
@@ -2287,250 +2323,305 @@ def BuildingGUI():
     # Configure the Canvas to scroll
     canvas.config(scrollregion=canvas.bbox("all"))  
 
-
-    canvas.create_text(
-        400.0,
-        150.0,
-        anchor="nw",
-        text="IP address",
-        fill="#000000",
-        font=("Roboto Medium", 14 * -1)
-    )
-    canvas.create_text(
-        560.0,
-        150.0,
-        anchor="nw",
-        text="PORT",
-        fill="#000000",
-        font=("Roboto Medium", 14 * -1)
-    )
-    canvas.create_text(
-        690.0,
-        150.0,
-        anchor="nw",
-        text="USERNAME",
-        fill="#000000",
-        font=("Roboto Medium", 14 * -1)
-    )
-    canvas.create_text(
-        860.0,
-        150.0,
-        anchor="nw",
-        text="PASSWORD",
-        fill="#000000",
-        font=("Roboto Medium", 14 * -1)
-    )
-
-    IP_address1_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-
-    IP_address1_entry.place(
-        x=350.0,
-        y=200,
-        width=170.0,
-        height=30.0
-    )
-
-    PORT1_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PORT1_entry.place(
-        x=530.0,
-        y=200,
-        width=100.0,
-        height=30.0
-    )
-
-    USERNAME1_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    USERNAME1_entry.place(
-        x=645.0,
-        y=200,
-        width=170.0,
-        height=30.0
-    )
-
-    PASSWORD1_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PASSWORD1_entry.place(
-        x=820.0,
-        y=200,
-        width=170.0,
-        height=30.0
-    )
-
     canvas.create_text(
         270.0,
-        207.0,
+        50.0,
         anchor="nw",
-        text="Proxy 1",
+        text="Product Location",
         fill="#000000",
         font=("Roboto Medium", 14 * -1)
     )
-
-    IP_address2_entry = Entry(
+    
+    Product_location_entry = Entry(
         bd=0,
         bg="#ebe6e6",
         fg="#000000",
         highlightthickness=0
     )
 
-    IP_address2_entry.place(
-        x=350.0,
-        y=255,
-        width=170.0,
+    Product_location_entry.place(
+        x=400.0,
+        y=43,
+        width=550.0,
         height=30.0
     )
-
-    PORT2_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PORT2_entry.place(
-        x=530.0,
-        y=255,
-        width=100.0,
-        height=30.0
-    )
-
-    USERNAME2_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    USERNAME2_entry.place(
-        x=645.0,
-        y=255,
-        width=170.0,
-        height=30.0
-    )
-
-    PASSWORD2_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PASSWORD2_entry.place(
-        x=820.0,
-        y=255,
-        width=170.0,
-        height=30.0
-    )
-
+    
     canvas.create_text(
         270.0,
-        262.0,
+        110.0,
         anchor="nw",
-        text="Proxy 2",
+        text="Product URL",
         fill="#000000",
         font=("Roboto Medium", 14 * -1)
     )
-
-    IP_address3_entry = Entry(
+    
+    Product_URL_entry = Entry(
         bd=0,
         bg="#ebe6e6",
         fg="#000000",
         highlightthickness=0
     )
 
-    IP_address3_entry.place(
-        x=350.0,
-        y=310,
-        width=170.0,
+    Product_URL_entry.place(
+        x=400.0,
+        y=103,
+        width=550.0,
         height=30.0
     )
-
-    PORT3_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PORT3_entry.place(
-        x=530.0,
-        y=310,
-        width=100.0,
-        height=30.0
-    )
-
-    USERNAME3_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    USERNAME3_entry.place(
-        x=645.0,
-        y=310,
-        width=170.0,
-        height=30.0
-    )
-
-    PASSWORD3_entry = Entry(
-        bd=0,
-        bg="#ebe6e6",
-        fg="#000000",
-        highlightthickness=0
-    )
-    PASSWORD3_entry.place(
-        x=820.0,
-        y=310,
-        width=170.0,
-        height=30.0
-    )
-
+    
     canvas.create_text(
         270.0,
-        317.0,
+        170.0,
         anchor="nw",
-        text="Proxy 3",
+        text="Product title",
         fill="#000000",
         font=("Roboto Medium", 14 * -1)
     )
-
-    canvas.create_text(
-        575.0,
-        480.0,
-        anchor="nw",
-        text="Console Log",
-        fill="#000000",
-        font=("Roboto Medium", 14 * -1)
-    )
-
-    console_entry = Entry(
+    
+    Product_title_entry = Entry(
         bd=0,
         bg="#ebe6e6",
         fg="#000000",
         highlightthickness=0
     )
 
-    console_entry.place(
-        x=219.0,
-        y=525,
-        width=781.0,
-        height=100.0
+    Product_title_entry.place(
+        x=400.0,
+        y=163,
+        width=550.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        230.0,
+        anchor="nw",
+        text="Product Price",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_Price_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
     )
 
+    Product_Price_entry.place(
+        x=400.0,
+        y=223,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        630.0,
+        230.0,
+        anchor="nw",
+        text="Product Brand",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_Brand_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
 
+    Product_Brand_entry.place(
+        x=750.0,
+        y=223,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        290.0,
+        anchor="nw",
+        text="Product Rating",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_Rating_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_Rating_entry.place(
+        x=400.0,
+        y=283,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        630.0,
+        290.0,
+        anchor="nw",
+        text="Number of review",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_review_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_review_entry.place(
+        x=750.0,
+        y=283,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        350.0,
+        anchor="nw",
+        text="Product BSR",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_BSR_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_BSR_entry.place(
+        x=400.0,
+        y=343,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        630.0,
+        350.0,
+        anchor="nw",
+        text="Product ASIN",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_asin_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_asin_entry.place(
+        x=750.0,
+        y=343,
+        width=200.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        410.0,
+        anchor="nw",
+        text="Product Image URL",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_image_URL_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_image_URL_entry.place(
+        x=400.0,
+        y=403,
+        width=550.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        470.0,
+        anchor="nw",
+        text="Product Dimension",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_dimension_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_dimension_entry.place(
+        x=400.0,
+        y=463,
+        width=550.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        530.0,
+        anchor="nw",
+        text="Product Date",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_Date_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_Date_entry.place(
+        x=400.0,
+        y=523,
+        width=550.0,
+        height=30.0
+    )
+    
+    canvas.create_text(
+        270.0,
+        590.0,
+        anchor="nw",
+        text="TimeStamp",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_timestamp_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_timestamp_entry.place(
+        x=400.0,
+        y=583,
+        width=550.0,
+        height=30.0
+    )
+    
     start_img = PhotoImage(file=relative_to_assets("start.png"))
     start_btn = Button(
         image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : start_function(), activebackground= "#202020")
@@ -2539,6 +2630,8 @@ def BuildingGUI():
     stop_img = PhotoImage(file=relative_to_assets("stop.png"))    
     stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : stop_function(), activebackground= "#202020")
     stop_btn.place(x=825, y=720, width=100, height=47)   
+    
+    # print("Product Category: ", Product_category)
     
     window.resizable(False, False)
     # Run the main event loop to display the window
