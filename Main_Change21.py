@@ -49,6 +49,7 @@ item_text = ""
 item_link = ""
 Category_result = ""
 item_link_list = []
+item_text_list = []
 category_result_list = []
 table_name_list = []
 Product_URL_entry = None
@@ -65,7 +66,14 @@ Product_Date_entry = None
 Product_timestamp_entry = None
 Product_location_entry = None
 # defining the Scrape function
-        
+
+def get_all_children(tree, parent_item):
+    children = tree.get_children(parent_item)
+    all_children = list(children)
+    for child in children:
+        all_children.extend(get_all_children(tree, child))
+    return all_children
+
 def stop_function():
     print("--------------------Scraping is stopped---------------------------")
     global stop_event
@@ -73,7 +81,7 @@ def stop_function():
     stop_event.set()
     
 def scrape_site():
-    global timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
+    global  timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
              
     df2 = pd.read_csv("configuration.csv")
     excel_link = df2.Item_link
@@ -140,7 +148,7 @@ def scrape_site():
         print("Category:", Product_location)
         
         Product_category = Product_location
-        Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '')
+        Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '').replace("'", "")
         Product_location_entry.delete(0, END)            
         Product_location_entry.insert(0, Product_category) 
         #Create table with excel name
@@ -488,6 +496,12 @@ def scrape_site():
 def BuildingGUI():
     global Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
     # Create a window object
+    try:
+        df3 = pd.read_csv("configuration.csv")
+        Configuration_item_list = df3.Item_text
+        Configuration_item_link_list = df3.Item_link
+    except:
+        pass
     OUTPUT_PATH = Path(__file__).parent
     ASSETS_PATH = OUTPUT_PATH / Path("assets/")
     def relative_to_assets(path: str) -> Path:
@@ -528,7 +542,8 @@ def BuildingGUI():
         # columns=("", "", ""),
         height=30,  # Set the number of visible items
         yscrollcommand=vscrollbar.set,  # Link to the scrollbar
-        style="Custom.Treeview"
+        style="Custom.Treeview",
+        selectmode="extended"
     )
 
     # tree.place(width=400, height=200)
@@ -562,11 +577,12 @@ def BuildingGUI():
             Category_result = ' > '.join(parents)
             item_link_list.append(item_link[0])             
             category_result_list.append(Category_result)
-            item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '').replace(':', '').replace('-', '')
-            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '')
+            item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '').replace(':', '').replace('-', '').replace("'", "")
+            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '').replace("'", "")
             table_name = Category_result_text + '_' + item_text_0
             table_name_list.append(table_name)
-            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list}
+            item_text_list.append(item_text)
+            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list, 'Item_text': item_text_list}
             df_0 = pd.DataFrame(dict_0)
             df_0.to_csv('configuration.csv')
             return
@@ -2312,9 +2328,30 @@ def BuildingGUI():
 
     parent_item39 = tree.insert("", "end", text="Video Games")
     child39_0 = tree.insert(parent_item39, "end", text="All")
-
     
-    
+    # Iterate through the items in the tree view
+    try:        
+        for item in get_all_children(tree, ""):
+            # print(item['text'])
+            # tree.item(item, open=True)        
+            item_text = tree.item(item)['text']
+            item_link = tree.item(item)['tags']
+            length =  len(Configuration_item_list)
+            # Check if the item matches the saved information
+            for i in range(length):
+                selected_item_text = Configuration_item_list[i]
+                selected_item_link = Configuration_item_link_list[i]
+                if selected_item_link in item_link:
+                    # print("selected_item_link:", selected_item_link)
+                    parent_item = tree.parent(item)
+                    tree.item(parent_item, open=True) 
+                    while parent_item:
+                        parent_item = tree.parent(parent_item)
+                        # print("parent_item: ", tree.item(parent_item)['text'])
+                        tree.item(parent_item, open=True)                            
+                    tree.selection_add(item)
+    except:
+        pass
 
     # Update the canvas window to fit the contents
     tree.update_idletasks()
