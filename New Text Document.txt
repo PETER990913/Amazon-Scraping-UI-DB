@@ -1,0 +1,8 @@
+Missing Product_About_Item cut off
+Product Tree needs rework missing items.
+When selecting items the selection list once closed and selected again it looses previous selection
+For example make 3 selections, close screen then open screen again and select 4th item and close it 	it will be lost
+Needs to preserve these setings 	
+
+Leafes need to be having config depth scan
+Needs to be have separate process or screen that kicks off to rebuild product tree and saves it to DB probably 
