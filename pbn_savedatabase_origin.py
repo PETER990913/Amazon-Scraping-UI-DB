@@ -23,81 +23,39 @@ driver = webdriver.Chrome(seleniumwire_options=proxy_options)
 driver.maximize_window()
 driver.get('https://www.amazon.com/Best-Sellers/zgbs/ref=zg_bs_unv_automotive_0_15707701_3')
 import time
-
+JSON_list = []
 new_JSON = {}
-# def call_back(driver):
-#     item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
-#     item_table = item_tables.find_elements(By.CSS_SELECTOR, 'div[role="treeitem"]')
-#     for i in range(0, len(item_table)):
-#     # for item in item_table:
-#         if i != 0:
-#             item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
-#             item_table = item_tables.find_elements(By.CSS_SELECTOR, 'div[role="treeitem"]')
-#         print('ITEM:::', item_table[i])
-#         print("############### Indexing number: ", i)
-#         item_text = item_table[i].get_attribute('innerText')  
-#         item_link_initial = item_table[i].find_element(By.TAG_NAME, 'a').get_attribute('href')      
-#         print('Item Text:::', item_text)  
-#         print('item_link_new:::', item_link_initial)
-#         driver.get(item_link_initial)           
-#         time.sleep(5)
-#         new_item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
-#         item_link_element = new_item_tables.find_elements(By.TAG_NAME, 'span')
-#         if (item_link_element):
-#             print('----------------------------IF---------------------')
-#             item_link = item_link_initial
-#             print('Item Link:::', item_link)
-#             # driver.back()
-#         else:
-#             print('---------------------------ELSE---------------------')          
-#             call_back(driver)
-#         driver.back()    
-#         time.sleep(1)
 def call_back(driver):
     item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
     item_table = item_tables.find_elements(By.CSS_SELECTOR, 'div[role="treeitem"]')
-
-    items = []
-
     for i in range(0, len(item_table)):
+    # for item in item_table:
         if i != 0:
             item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
             item_table = item_tables.find_elements(By.CSS_SELECTOR, 'div[role="treeitem"]')
+        print('ITEM:::', item_table[i])
         print("############### Indexing number: ", i)
-        item_text = item_table[i].get_attribute('innerText')  
+        item_text = item_table[i].get_attribute('innerText')
         item_link_initial = item_table[i].find_element(By.TAG_NAME, 'a').get_attribute('href')      
         print('Item Text:::', item_text)  
         print('item_link_new:::', item_link_initial)
         driver.get(item_link_initial)           
         time.sleep(5)
-
         new_item_tables = driver.find_element(By.CSS_SELECTOR, 'div[role="group"]')
         item_link_element = new_item_tables.find_elements(By.TAG_NAME, 'span')
-
-        children = []
-        if not item_link_element:
+        if (item_link_element):
             print('----------------------------IF---------------------')
-            children = call_back(driver)
-        
-        items.append({
-            "text": item_text,
-            "link": item_link_initial,
-            "children": children
-        })
-        
-        print(items)
-
+            item_link = item_link_initial          
+            print('Item Link:::', item_link)
+            # driver.back()
+        else:
+            print('---------------------------ELSE---------------------')          
+            call_back(driver)
         driver.back()    
         time.sleep(1)
 
-    return items
-# call_back(driver)
+call_back(driver)
         
     
-# while True:
-#     pass
-tree_data = call_back(driver)
-
-# Write to a JSON file
-with open('tree_structure.json', 'w') as f:
-    json.dump(tree_data, f, indent=4)
+while True:
+    pass
