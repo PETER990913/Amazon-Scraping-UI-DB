@@ -59,7 +59,9 @@ def call_back(driver):
             print('----------------JSON First-----------------:::::', entry)
             # driver.back()
         else:
-            print('---------------------------ELSE---------------------')    
+            print('---------------------------ELSE---------------------')  
+            # entry["name"] = item_text 
+            # entry["children"] = call_back(driver) 
             entry["children"].append({
                 "name": item_text,
                 "children": call_back(driver)
@@ -68,7 +70,6 @@ def call_back(driver):
              
         driver.back()    
         time.sleep(1)
-    print('----------------JSON Third-----------------:::::', entry) 
     return entry
 
 json_data= call_back(driver)
