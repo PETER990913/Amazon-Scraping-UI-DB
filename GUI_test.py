@@ -613,7 +613,7 @@ def BuildingGUI():
            
     def load_jsonfile():
         parent_item = tree.insert("", "end", text="Any Department")
-        with open('result.json', 'r') as file:
+        with open('videogame.json', 'r') as file:
             for line in file:
                 # Do something with line1 and line2
                 line_word = line.strip()

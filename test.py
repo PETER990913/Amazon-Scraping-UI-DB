@@ -1,5 +1,5 @@
 import json
-with open('homekitchen.json', 'r') as file:
+with open('musicalinstrument.json', 'r') as file:
     for line in file:
         # Do something with line1 and line2
         line_word = line.strip()
