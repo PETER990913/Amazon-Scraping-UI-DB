@@ -144,7 +144,7 @@ def scrape_site():
         print("k:", k)
         URL = excel_link[k]
         print("URL:", URL)
-        Product_location = category_results_list[k]
+        Product_location = str(category_results_list[k]).replace('Any Department >', '')
         print("Category:", Product_location)
         
         Product_category = Product_location
@@ -584,7 +584,7 @@ def BuildingGUI():
             item_link_list.append(item_link[0])         
             category_result_list.append(Category_result)
             item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '').replace(':', '').replace('-', '').replace("'", "").replace('+', '')
-            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '').replace("'", "").replace('+', '')
+            Category_result_text = Category_result.split('>')[1].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '').replace("'", "").replace('+', '')
             table_name = Category_result_text + '_' + item_text_0
             table_name_list.append(table_name)
             item_text_list.append(item_text)
@@ -613,7 +613,7 @@ def BuildingGUI():
            
     def load_jsonfile():
         parent_item = tree.insert("", "end", text="Any Department")
-        with open('Amazon.json', 'r') as file:
+        with open('result.json', 'r') as file:
             for line in file:
                 # Do something with line1 and line2
                 line_word = line.strip()

@@ -52,6 +52,7 @@ item_link_list = []
 item_text_list = []
 category_result_list = []
 table_name_list = []
+depth_list = []
 Product_URL_entry = None
 Product_title_entry = None
 Product_Price_entry = None
@@ -87,6 +88,8 @@ def scrape_site():
     excel_link = df2.Item_link
     category_results_list = df2.Category_result
     table_names_list = df2.table_name
+    depth_text_list = df2.Depth
+    print('depth_text:', depth_text_list)
     print("---------------+++++++++++++++________________:", excel_link)
     # global item_link_list
     logging.getLogger('webdriver_manager').disabled = True
@@ -141,12 +144,14 @@ def scrape_site():
         Product_Special_list = []
         Product_About_Item_list = []
         timestamp_list = []
+        Leaf_depth_list = []
         print("k:", k)
         URL = excel_link[k]
         print("URL:", URL)
-        Product_location = category_results_list[k]
+        Product_location = str(category_results_list[k]).replace('Any Department >', '')
         print("Category:", Product_location)
-        
+        Leaf_Depth = int(depth_text_list[k])
+        print('Depth:', Leaf_Depth)
         Product_category = Product_location
         Excel_name = str(Product_category).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '').replace("'", "").replace('+', '')
         Product_location_entry.delete(0, END)            
@@ -190,7 +195,8 @@ def scrape_site():
             number_solds VARCHAR(255),
             product_specification TEXT,
             product_description TEXT,
-            timestamp VARCHAR(255)
+            timestamp VARCHAR(255),
+            Leaf_Depth VARCHAR(255)
         );
         """.format(table_names_list[k])
 
@@ -213,16 +219,14 @@ def scrape_site():
             except:
                 Product_URL = "none"
             print("Product_URL:", Product_URL)
-            Product_URL_entry.delete(0, END)            
-            Product_URL_entry.insert(0, Product_URL) 
+             
             # Getting the product title
             try:
                 Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
             except:
                 Product_title = "none"
             print("Product_title:", Product_title)
-            Product_title_entry.delete(0, END)            
-            Product_title_entry.insert(0, Product_title) 
+            
             try:
                 try:
                     Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
@@ -230,8 +234,7 @@ def scrape_site():
                     Product_price = table.find_element(By.CLASS_NAME, Product_price_Class2).text                  
             except:
                 Product_price = "none"
-            Product_Price_entry.delete(0, END)            
-            Product_Price_entry.insert(0, Product_price)            
+                      
             print("Product_price:", Product_price)
             
             driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
@@ -239,7 +242,14 @@ def scrape_site():
             driver1.get(Product_URL)  
                     
             print("Product_category:", Product_category) 
-                        
+            Product_URL_entry.delete(0, END)            
+            Product_URL_entry.insert(0, Product_URL)   
+                     
+            Product_title_entry.delete(0, END)            
+            Product_title_entry.insert(0, Product_title)  
+            
+            Product_Price_entry.delete(0, END)            
+            Product_Price_entry.insert(0, Product_price)          
             try:
                 Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
             except:
@@ -462,10 +472,11 @@ def scrape_site():
             Product_Month_list.append(Product_Month)
             Product_About_Item_list.append(Product_About_Item)
             timestamp_list.append(timestamp)
+            Leaf_depth_list.append(Leaf_Depth)
             
-            insert_sql = f"""INSERT INTO {table_names_list[k]} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description, timestamp) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+            insert_sql = f"""INSERT INTO {table_names_list[k]} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description, timestamp, Leaf_Depth) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
             insert_values = [Product_category, Product_title, Product_image_URL, Product_brand, Product_Rate, Product_Rating, Product_price, Product_About_Item, Product_Dim, Product_ASIN, 
-                             Product_Item, Product_Department, Product_Date, Product_Special, Product_Manu, Product_Country, Product_UPSPSC, Product_BSR, Product_Month, Product_specification, Product_description, timestamp]
+                             Product_Item, Product_Department, Product_Date, Product_Special, Product_Manu, Product_Country, Product_UPSPSC, Product_BSR, Product_Month, Product_specification, Product_description, timestamp, Leaf_Depth]
             print(insert_values)
             try:
                 mycursor = mydb.cursor()
@@ -479,7 +490,7 @@ def scrape_site():
             
             dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
             'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
-            'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, "timestamp": timestamp_list}
+            'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, "timestamp": timestamp_list, "Leaf Depth": Leaf_depth_list}
             df = pd.DataFrame(dict)
             df.to_csv(f'{Excel_name}.csv') 
             
@@ -561,7 +572,7 @@ def BuildingGUI():
     # Getting the treeview text when it's selected
         
     def get_childItems(item):
-        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list
+        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list, depth_list
         child_items = tree.get_children(item)
         child_len = len(child_items)
         if(child_len != 0):
@@ -573,10 +584,13 @@ def BuildingGUI():
             item_link = tree.item(item)['tags']   
             print("item-----------------:", item_link)         
             parent_item = tree.parent(item)
+            depth = 0
             while parent_item != '':
                 parent_text = tree.item(parent_item, 'text')
                 parents.append(parent_text)
                 parent_item = tree.parent(parent_item)
+                depth +=1
+            depth_list.append(depth)
             current_item_text = tree.item(item, 'text')
             parents.insert(0, current_item_text)
             parents.reverse()
@@ -584,11 +598,11 @@ def BuildingGUI():
             item_link_list.append(item_link[0])         
             category_result_list.append(Category_result)
             item_text_0 = item_text.replace(' ', '').replace(',', '').replace('&', '').replace(':', '').replace('-', '').replace("'", "").replace('+', '')
-            Category_result_text = Category_result.split('>')[0].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '').replace("'", "").replace('+', '')
+            Category_result_text = Category_result.split('>')[1].replace(' ', '').replace(',', '').replace('&', '').replace('-', '').replace(':', '').replace("'", "").replace('+', '')
             table_name = Category_result_text + '_' + item_text_0
             table_name_list.append(table_name)
             item_text_list.append(item_text)
-            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list, 'Item_text': item_text_list}
+            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list, 'Item_text': item_text_list, 'Depth': depth_list}
             df_0 = pd.DataFrame(dict_0)
             df_0.to_csv('configuration.csv')
             return

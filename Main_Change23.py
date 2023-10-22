@@ -52,6 +52,7 @@ item_link_list = []
 item_text_list = []
 category_result_list = []
 table_name_list = []
+depth_list = []
 Product_URL_entry = None
 Product_title_entry = None
 Product_Price_entry = None
@@ -87,6 +88,8 @@ def scrape_site():
     excel_link = df2.Item_link
     category_results_list = df2.Category_result
     table_names_list = df2.table_name
+    depth_text_list = df2.Depth
+    print('depth_text_list', depth_text_list)
     print("---------------+++++++++++++++________________:", excel_link)
     # global item_link_list
     logging.getLogger('webdriver_manager').disabled = True
@@ -561,7 +564,7 @@ def BuildingGUI():
     # Getting the treeview text when it's selected
         
     def get_childItems(item):
-        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list
+        global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list, depth_list
         child_items = tree.get_children(item)
         child_len = len(child_items)
         if(child_len != 0):
@@ -573,10 +576,14 @@ def BuildingGUI():
             item_link = tree.item(item)['tags']   
             print("item-----------------:", item_link)         
             parent_item = tree.parent(item)
+            depth = 0
             while parent_item != '':
                 parent_text = tree.item(parent_item, 'text')
                 parents.append(parent_text)
                 parent_item = tree.parent(parent_item)
+                depth +=1
+            depth_list.append(depth)
+            print('depth:', depth)
             current_item_text = tree.item(item, 'text')
             parents.insert(0, current_item_text)
             parents.reverse()
@@ -588,7 +595,7 @@ def BuildingGUI():
             table_name = Category_result_text + '_' + item_text_0
             table_name_list.append(table_name)
             item_text_list.append(item_text)
-            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list, 'Item_text': item_text_list}
+            dict_0 = {'Item_link': item_link_list, 'Category_result': category_result_list, 'table_name': table_name_list, 'Item_text': item_text_list, 'Depth': depth_list}
             df_0 = pd.DataFrame(dict_0)
             df_0.to_csv('configuration.csv')
             return
@@ -613,7 +620,7 @@ def BuildingGUI():
            
     def load_jsonfile():
         parent_item = tree.insert("", "end", text="Any Department")
-        with open('Amazon.json', 'r') as file:
+        with open('result.json', 'r') as file:        
             for line in file:
                 # Do something with line1 and line2
                 line_word = line.strip()
@@ -626,7 +633,7 @@ def BuildingGUI():
                     item_link = item['link']
                     child_item = tree.insert(parent_item, "end", text=item_text, tag = item_link)
                     parent_item = child_item                   
-
+                # print('depth:', depth)
         file.close()
     
     load_jsonfile()

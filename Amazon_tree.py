@@ -21,7 +21,7 @@ proxy_options = {
 }
 driver = webdriver.Chrome(seleniumwire_options=proxy_options)        
 driver.maximize_window()
-driver.get('https://www.amazon.com/Best-Sellers-Digital-Music/zgbs/dmusic/ref=zg_bs_nav_dmusic_0')
+driver.get('https://www.amazon.com/Best-Sellers/zgbs/ref=zg_bs_unv_office-products_0_1069254_3')
 import time
 JSON_list = []
 new_JSON = {}
@@ -50,7 +50,7 @@ def call_back(driver):
             # print('Item Link:::', item_link)
             json_data = {"name": item_text, "link": item_link}
             print(json_data)
-            file = open("DigitalMusic.json", "a")
+            file = open("Amazon.json", "a")
             json.dump(json_data, file)
             file.write('\n')
             file.close()
@@ -59,13 +59,13 @@ def call_back(driver):
             print('---------------------------ELSE---------------------')   
             json_data = {"name": item_text, "link": ""}
             print(json_data)
-            file = open("DigitalMusic.json", "a")
+            file = open("Amazon.json", "a")
             json.dump(json_data, file)
             file.write('\n')
             file.close()
             call_back(driver)
             
-        file = open("DigitalMusic.json", "a")
+        file = open("Amazon.json", "a")
         driver.back()
         file.write("back" + "\n")
         file.close()
