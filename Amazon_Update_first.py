@@ -1,3 +1,4 @@
+# This fixed tree width, open all tree items, save config button
 from tkinter import Canvas, Entry, Text,  Button, PhotoImage,filedialog,END,Variable,messagebox
 import tkinter as tk
 from tkinter import ttk
@@ -541,10 +542,11 @@ def BuildingGUI():
     tree_frame = tk.Frame(canvas,  bg="#FFFFFF")
     tree_frame.pack()
     
-    hscrollbar = tk.Scrollbar(tree_frame, orient="horizontal")
-    hscrollbar.pack(side="bottom", fill="x")
     vscrollbar = tk.Scrollbar(tree_frame, orient="vertical")
     vscrollbar.pack(side="right", fill="y")
+    
+    hscrollbar = tk.Scrollbar(tree_frame, orient="horizontal")
+    hscrollbar.pack(side="bottom", fill="x")
     
 
     style = ttk.Style()
@@ -561,16 +563,29 @@ def BuildingGUI():
         style="Custom.Treeview",
         selectmode="extended"
     )
-
-    # tree.place(width=400, height=200)
+    # tree.configure(width=800)
+    tree.column("#0", width=350)
+    # tree.place(width=800, height=200)
     tree.pack(fill="both", expand=True)
+    vscrollbar.config(command=tree.yview)
+    hscrollbar.config(command=tree.xview)
+    tree.configure(xscrollcommand=hscrollbar.set)
+    hscrollbar.configure(command=tree.xview)
     # tree.place(x = -300, y = -200, width=500, height=200)
 
     # Configure the scrollbar to work with the Treeview
-    vscrollbar.config(command=tree.yview)
-    hscrollbar.config(command=tree.xview)
+    
     # Getting the treeview text when it's selected
-        
+    def open_all_items(tree):
+    # Get all item IDs in the Treeview
+        for item in get_all_children(tree, ""):
+            tree.item(item, open=True)
+        # item_ids = tree.get_children()
+
+        # # Open each item by setting its state to "open"
+        # for item_id in item_ids:
+        #     tree.item(item_id, open=True)
+    
     def get_childItems(item):
         global item_link, item_text, Category_result, item_link_list, category_result_list, table_name_list, depth_list
         child_items = tree.get_children(item)
@@ -607,8 +622,7 @@ def BuildingGUI():
             df_0.to_csv('configuration.csv')
             return
             
-        
-    def start_function():       
+    def save_config():
         selected_items = tree.selection()
         for selected_item in selected_items:           
             
@@ -616,11 +630,11 @@ def BuildingGUI():
                 get_childItems(selected_item)            
             except:
                 continue
-        
         print("item_link_test")
         print(item_link_list, len(item_link_list))        
         print(category_result_list, len(category_result_list)) 
-        print(table_name_list, len(table_name_list))               
+        print(table_name_list, len(table_name_list))    
+    def start_function():                        
         global thread
         thread = threading.Thread(target = scrape_site, args=())
         thread.start()
@@ -644,12 +658,12 @@ def BuildingGUI():
         file.close()
     
     load_jsonfile()
-    
+    open_all_items(tree)
     # Iterate through the items in the tree view
     try:        
         for item in get_all_children(tree, ""):
             # print(item['text'])
-            # tree.item(item, open=True)        
+            tree.item(item, open=True)        
             item_text = tree.item(item)['text']
             item_link = tree.item(item)['tags']
             length =  len(Configuration_item_list)
@@ -677,7 +691,7 @@ def BuildingGUI():
     canvas.config(scrollregion=canvas.bbox("all"))  
 
     canvas.create_text(
-        270.0,
+        400.0,
         50.0,
         anchor="nw",
         text="Product Location",
@@ -693,14 +707,14 @@ def BuildingGUI():
     )
 
     Product_location_entry.place(
-        x=400.0,
+        x=550.0,
         y=43,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         110.0,
         anchor="nw",
         text="Product URL",
@@ -716,14 +730,14 @@ def BuildingGUI():
     )
 
     Product_URL_entry.place(
-        x=400.0,
+        x=550.0,
         y=103,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         170.0,
         anchor="nw",
         text="Product title",
@@ -739,14 +753,14 @@ def BuildingGUI():
     )
 
     Product_title_entry.place(
-        x=400.0,
+        x=550.0,
         y=163,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         230.0,
         anchor="nw",
         text="Product Price",
@@ -762,14 +776,14 @@ def BuildingGUI():
     )
 
     Product_Price_entry.place(
-        x=400.0,
+        x=500.0,
         y=223,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        630.0,
+        680.0,
         230.0,
         anchor="nw",
         text="Product Brand",
@@ -785,14 +799,14 @@ def BuildingGUI():
     )
 
     Product_Brand_entry.place(
-        x=750.0,
+        x=800.0,
         y=223,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         290.0,
         anchor="nw",
         text="Product Rating",
@@ -808,14 +822,14 @@ def BuildingGUI():
     )
 
     Product_Rating_entry.place(
-        x=400.0,
+        x=500.0,
         y=283,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        630.0,
+        680.0,
         290.0,
         anchor="nw",
         text="Number of review",
@@ -831,14 +845,14 @@ def BuildingGUI():
     )
 
     Product_review_entry.place(
-        x=750.0,
+        x=800.0,
         y=283,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         350.0,
         anchor="nw",
         text="Product BSR",
@@ -854,14 +868,14 @@ def BuildingGUI():
     )
 
     Product_BSR_entry.place(
-        x=400.0,
+        x=500.0,
         y=343,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        630.0,
+        680.0,
         350.0,
         anchor="nw",
         text="Product ASIN",
@@ -877,14 +891,14 @@ def BuildingGUI():
     )
 
     Product_asin_entry.place(
-        x=750.0,
+        x=800.0,
         y=343,
-        width=200.0,
+        width=150.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         410.0,
         anchor="nw",
         text="Product Image URL",
@@ -900,14 +914,14 @@ def BuildingGUI():
     )
 
     Product_image_URL_entry.place(
-        x=400.0,
+        x=550.0,
         y=403,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         470.0,
         anchor="nw",
         text="Product Dimension",
@@ -923,14 +937,14 @@ def BuildingGUI():
     )
 
     Product_dimension_entry.place(
-        x=400.0,
+        x=550.0,
         y=463,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         530.0,
         anchor="nw",
         text="Product Date",
@@ -946,14 +960,14 @@ def BuildingGUI():
     )
 
     Product_Date_entry.place(
-        x=400.0,
+        x=550.0,
         y=523,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     canvas.create_text(
-        270.0,
+        400.0,
         590.0,
         anchor="nw",
         text="TimeStamp",
@@ -969,17 +983,22 @@ def BuildingGUI():
     )
 
     Product_timestamp_entry.place(
-        x=400.0,
+        x=550.0,
         y=583,
-        width=550.0,
+        width=400.0,
         height=30.0
     )
     
     start_img = PhotoImage(file=relative_to_assets("start.png"))
     start_btn = Button(
         image=start_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : start_function(), activebackground= "#202020")
-    start_btn.place(x=75, y=720, width=100, height=47)
-
+    start_btn.place(x=450, y=720, width=100, height=47)
+    
+    save_img = PhotoImage(file=relative_to_assets("save.png"))
+    save_btn = Button(
+        image=save_img, borderwidth=0, highlightthickness=0, relief="flat",command=lambda : save_config(), activebackground= "#202020")
+    save_btn.place(x=75, y=720, width=100, height=47)
+    
     stop_img = PhotoImage(file=relative_to_assets("stop.png"))    
     stop_btn = Button(image=stop_img, borderwidth=0, highlightthickness=0, relief="flat", command=lambda : stop_function(), activebackground= "#202020")
     stop_btn.place(x=825, y=720, width=100, height=47)   
