@@ -66,6 +66,7 @@ Product_asin_entry = None
 Product_image_URL_entry = None
 Product_dimension_entry = None
 Product_Date_entry = None
+Product_Depth_entry = None
 Product_timestamp_entry = None
 Product_location_entry = None
 # defining the Scrape function
@@ -85,7 +86,7 @@ def stop_function():
     
 def scrape_site():
     while True:
-        global  timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
+        global  timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         timestamp_text = str(timestamp).replace('-', '').replace(':', '')
@@ -258,7 +259,10 @@ def scrape_site():
                 Product_title_entry.insert(0, Product_title)  
                 
                 Product_Price_entry.delete(0, END)            
-                Product_Price_entry.insert(0, Product_price)          
+                Product_Price_entry.insert(0, Product_price)    
+                
+                Product_Depth_entry.delete(0, END)            
+                Product_Depth_entry.insert(0, Leaf_Depth)       
                 try:
                     Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
                 except:
@@ -449,15 +453,14 @@ def scrape_site():
                 Product_dimension_entry.delete(0, END)            
                 Product_dimension_entry.insert(0, Product_Dim)  
                 Product_Date_entry.delete(0, END)            
-                Product_Date_entry.insert(0, Product_Date) 
+                Product_Date_entry.insert(0, Product_Date)                 
                 Product_timestamp_entry.delete(0, END)            
                 Product_timestamp_entry.insert(0, timestamp)        
                 i += 1
                 Product_BSR = "#" + str(i)
                 Product_BSR_entry.delete(0, END)            
                 Product_BSR_entry.insert(0, Product_BSR) 
-                print('Product_BSR:', Product_BSR)
-                
+                print('Product_BSR:', Product_BSR)                
                 print('timestamp:', timestamp)
                 Product_title_list.append(Product_title)     
                 Product_category_list.append(Product_category)        
@@ -515,7 +518,7 @@ def scrape_site():
 # defining the building GUI function
 
 def BuildingGUI():
-    global Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_timestamp_entry
+    global Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
     # Create a window object
     try:
         df3 = pd.read_csv("configuration.csv")
@@ -969,11 +972,35 @@ def BuildingGUI():
     )
 
     Product_Date_entry.place(
-        x=550.0,
+        x=500.0,
         y=523,
-        width=400.0,
+        width=150.0,
         height=30.0
     )
+    
+    canvas.create_text(
+        680.0,
+        530.0,
+        anchor="nw",
+        text="Scan Depth",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Product_Depth_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Product_Depth_entry.place(
+        x=800.0,
+        y=523,
+        width=150.0,
+        height=30.0
+    )
+    
     
     canvas.create_text(
         400.0,
