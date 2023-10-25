@@ -1,4 +1,4 @@
-# This fixed Daily running
+# This fixed Daily running and scan depth customizing
 from tkinter import Canvas, Entry, Text,  Button, PhotoImage,filedialog,END,Variable,messagebox
 import tkinter as tk
 from tkinter import ttk
@@ -25,11 +25,6 @@ import re
 import logging
 from collections import Counter
 import datetime
-
-
-    
-# Get the current date and time
-
 
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
 csv_file  = 'Result.csv'
@@ -85,8 +80,13 @@ def stop_function():
     stop_event.set()
     
 def scrape_site():
+    global  timestamp, Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
+    scan_limit = Product_Depth_entry.get()
+    print('type:::', type(scan_limit))
+    time_interval = Product_Running_entry.get()
+    print('scan_limit:::', scan_limit)
+    print('time interval:::', time_interval)
     while True:
-        global  timestamp, Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         timestamp_text = str(timestamp).replace('-', '').replace(':', '')
@@ -220,10 +220,12 @@ def scrape_site():
             #---------CREATE TABLE END------------------------
         
             driver.get(URL)  
-            i = 0
+            i = 0    
             tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
             print(len(tables))
-            for table in tables:
+            for table in tables:                            
+                if (len(Product_title_list) > int(scan_limit)-1):
+                    continue
                 try:
                     Product_URL = table.find_elements(By.TAG_NAME, 'a')[0].get_attribute('href')
                 except:
@@ -260,7 +262,7 @@ def scrape_site():
                 
                 Product_Price_entry.delete(0, END)            
                 Product_Price_entry.insert(0, Product_price)    
-                      
+                    
                 try:
                     Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
                 except:
@@ -510,13 +512,13 @@ def scrape_site():
         # Saving as EXCEL file
         
         print('---------------------------Saving result as an Excel--------------------------------')
-        time.sleep(3*60)
+        time.sleep(int(time_interval)*60)
     
 
 # defining the building GUI function
 
 def BuildingGUI():
-    global Product_location_entry, Product_URL_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
+    global Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
     # Create a window object
     try:
         df3 = pd.read_csv("configuration.csv")
@@ -645,7 +647,7 @@ def BuildingGUI():
         print(category_result_list, len(category_result_list)) 
         print(table_name_list, len(table_name_list))    
     def start_function():                        
-        global thread
+        global thread, Product_Depth_entry        
         thread = threading.Thread(target = scrape_site, args=())
         thread.start()
         
@@ -999,51 +1001,51 @@ def BuildingGUI():
         height=30.0
     )
     
-    # canvas.create_text(
-    #     400.0,
-    #     650.0,
-    #     anchor="nw",
-    #     text="Interval",
-    #     fill="#000000",
-    #     font=("Roboto Medium", 14 * -1)
-    # )
+    canvas.create_text(
+        400.0,
+        650.0,
+        anchor="nw",
+        text="Interval(min)",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
     
-    # Product_Running_entry = Entry(
-    #     bd=0,
-    #     bg="#ebe6e6",
-    #     fg="#000000",
-    #     highlightthickness=0
-    # )
+    Product_Running_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
 
-    # Product_Running_entry.place(
-    #     x=500.0,
-    #     y=643,
-    #     width=150.0,
-    #     height=30.0
-    # )
+    Product_Running_entry.place(
+        x=500.0,
+        y=643,
+        width=150.0,
+        height=30.0
+    )
     
-    # canvas.create_text(
-    #     680.0,
-    #     650.0,
-    #     anchor="nw",
-    #     text="Scan Depth",
-    #     fill="#000000",
-    #     font=("Roboto Medium", 14 * -1)
-    # )
+    canvas.create_text(
+        680.0,
+        650.0,
+        anchor="nw",
+        text="Scan Depth",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
     
-    # Product_Depth_entry = Entry(
-    #     bd=0,
-    #     bg="#ebe6e6",
-    #     fg="#000000",
-    #     highlightthickness=0
-    # )
+    Product_Depth_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
 
-    # Product_Depth_entry.place(
-    #     x=800.0,
-    #     y=643,
-    #     width=150.0,
-    #     height=30.0
-    # )
+    Product_Depth_entry.place(
+        x=800.0,
+        y=643,
+        width=150.0,
+        height=30.0
+    )    
     
     start_img = PhotoImage(file=relative_to_assets("start.png"))
     start_btn = Button(
