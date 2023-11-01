@@ -86,143 +86,143 @@ def scrape_site():
     time_interval = Product_Running_entry.get()
     print('scan_limit:::', scan_limit)
     print('time interval:::', time_interval)
-    k = 0
+    k = 0        
     while True:
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        timestamp_text = str(timestamp).replace('-', '').replace(':', '')
-        print(timestamp)        
-        df2 = pd.read_csv("configuration.csv")
-        excel_link = df2.Item_link
-        category_results_list = df2.Category_result
-        table_names_list = df2.table_name
-        depth_text_list = df2.Depth
-        print('depth_text:', depth_text_list)
-        print("---------------+++++++++++++++________________:", excel_link)
-        # global item_link_list
-        logging.getLogger('webdriver_manager').disabled = True
-        
-        SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62'
-                
-        proxy_options = {
-            'proxy': {
-                'http': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
-                'https': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
-                'no_proxy': 'localhost:127.0.0.1'
+        try:
+            now = datetime.datetime.now()
+            timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+            timestamp_text = str(timestamp).replace('-', '').replace(':', '')
+            print(timestamp)        
+            df2 = pd.read_csv("configuration.csv")
+            excel_link = df2.Item_link
+            category_results_list = df2.Category_result
+            table_names_list = df2.table_name
+            depth_text_list = df2.Depth
+            print('depth_text:', depth_text_list)
+            print("---------------+++++++++++++++________________:", excel_link)
+            # global item_link_list
+            logging.getLogger('webdriver_manager').disabled = True
+            
+            SCRAPEOPS_API_KEY = 'ab147e77-85aa-4e7f-8be4-6f1b2a685d62'
+                    
+            proxy_options = {
+                'proxy': {
+                    'http': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+                    'https': f'http://scrapeops.headless_browser_mode=true:{SCRAPEOPS_API_KEY}@proxy.scrapeops.io:5353',
+                    'no_proxy': 'localhost:127.0.0.1'
+                }
             }
-        }
-        
-        
-        # Defining XPATH, CLASSNAME etc...
-        Product_tables_CSS_SELECTOR = 'div[class="a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content"]'
-        Product_image_URL_XPATH = '//*[@id="landingImage"]'
-        Product_brand_XPATH = '//*[@id="bylineInfo"]'
-        Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
-        Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
-        Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
-        Product_price_Class2 = 'p13n-sc-price'
-        Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
-        Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
-        Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
-        
-        print('--------------------Automation scraping is successfully started-------------------')
-        driver = webdriver.Chrome(seleniumwire_options=proxy_options)        
-        driver.maximize_window()
-        for k in range(0, len(excel_link)):
-            # initial result values
-            Product_title_list = []
-            Product_image_URL_list = []
-            Product_brand_list = []
-            Product_Rate_list = []
-            Product_Rating_list = []
-            Product_price_list = []
-            Product_ASIN_list = []
-            Product_Dim_list = []
-            Product_BSR_list = []
-            Product_Month_list = []
-            Product_specification_list = []
-            Product_description_list = []
-            Product_category_list = []
-            Product_Item_list = []
-            Product_Department_list = []
-            Product_Date_list = []
-            Product_Manu_list = []
-            Product_Country_list = []
-            Product_UPSPSC_list = []
-            Product_Special_list = []
-            Product_About_Item_list = []
-            timestamp_list = []
-            Leaf_depth_list = []
-            print("k:", k)
-            DB_table_name = str(table_names_list[k] + timestamp_text).replace(' ', '')
-            print('DB_table_name:::', DB_table_name)
-            URL = excel_link[k]
-            print("URL:", URL)
-            Product_location = str(category_results_list[k]).replace('Any Department >', '')
-            print("Category:", Product_location)
-            Leaf_Depth = int(depth_text_list[k])
-            print('Depth:', Leaf_Depth)
-            Product_category = Product_location
-            Excel_name = str(Product_category + timestamp_text).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '').replace("'", "").replace('+', '')
-            print('Excel_name:::', Excel_name)
-            Product_location_entry.delete(0, END)            
-            Product_location_entry.insert(0, Product_category) 
-            #Create table with excel name
-            cursor = mydb.cursor()
-            # Define the SQL statement to drop the table
-            drop_table_sql = f"DROP TABLE IF EXISTS {DB_table_name}"
-
-            # Execute the SQL statement to drop the table
-            try:
-                cursor.execute(drop_table_sql)
-                print(f"Table '{item_text}' deleted successfully.")
-            except mysql.connector.Error as err:
-                print(f"Error: {err}")
-            mydb.commit()
             
-            #---------CREATE TABLE START------------------------
-            # Define the CREATE TABLE statement
-            create_table_sql = """
-            CREATE TABLE IF NOT EXISTS {} (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                product_location VARCHAR(255),
-                product_title VARCHAR(255),
-                product_imgurl VARCHAR(255),
-                product_brand VARCHAR(255),
-                product_rating VARCHAR(255),
-                number_reviews VARCHAR(255),
-                product_price VARCHAR(255),
-                Product_About_Item VARCHAR(255),
-                product_dim VARCHAR(255),
-                product_asin VARCHAR(255),
-                product_modelnumber VARCHAR(255),
-                product_department VARCHAR(255),
-                product_dateavailable VARCHAR(255),
-                Product_Special VARCHAR(255),
-                product_manufacturer VARCHAR(255),
-                product_country VARCHAR(255),
-                upspsc_code VARCHAR(255),
-                product_bsr VARCHAR(255),
-                number_solds VARCHAR(255),
-                product_specification TEXT,
-                product_description TEXT,
-                timestamp VARCHAR(255),
-                Leaf_Depth VARCHAR(255)
-            );
-            """.format(DB_table_name)
-
-            # Execute the CREATE TABLE statement
             
-            cursor.execute(create_table_sql)
+            # Defining XPATH, CLASSNAME etc...
+            Product_tables_CSS_SELECTOR = 'div[class="a-cardui _cDEzb_grid-cell_1uMOS expandableGrid p13n-grid-content"]'
+            Product_image_URL_XPATH = '//*[@id="landingImage"]'
+            Product_brand_XPATH = '//*[@id="bylineInfo"]'
+            Product_Rate_XPATH = '//*[@id="acrPopover"]/span[1]/a/span'
+            Product_Rating_XPATH = '//*[@id="acrCustomerReviewText"]'    
+            Product_price_Class1 = '_cDEzb_p13n-sc-price_3mJ9Z'
+            Product_price_Class2 = 'p13n-sc-price'
+            Product_Month_Sold_XPATH = '//*[@id="social-proofing-faceout-title-tk_bought"]/span'
+            Product_specification_XPATH = '//*[@id="technicalSpecifications_section_1"]/tbody'
+            Product_About_Item_XPATH = '//*[@id="feature-bullets"]/ul'
+            
+            print('--------------------Automation scraping is successfully started-------------------')
+            driver = webdriver.Chrome(seleniumwire_options=proxy_options)        
+            driver.maximize_window()
+            for k in range(0, len(excel_link)):
+                # initial result values
+                Product_title_list = []
+                Product_image_URL_list = []
+                Product_brand_list = []
+                Product_Rate_list = []
+                Product_Rating_list = []
+                Product_price_list = []
+                Product_ASIN_list = []
+                Product_Dim_list = []
+                Product_BSR_list = []
+                Product_Month_list = []
+                Product_specification_list = []
+                Product_description_list = []
+                Product_category_list = []
+                Product_Item_list = []
+                Product_Department_list = []
+                Product_Date_list = []
+                Product_Manu_list = []
+                Product_Country_list = []
+                Product_UPSPSC_list = []
+                Product_Special_list = []
+                Product_About_Item_list = []
+                timestamp_list = []
+                Leaf_depth_list = []
+                print("k:", k)
+                DB_table_name = str(table_names_list[k] + timestamp_text).replace(' ', '')
+                print('DB_table_name:::', DB_table_name)
+                URL = excel_link[k]
+                print("URL:", URL)
+                Product_location = str(category_results_list[k]).replace('Any Department >', '')
+                print("Category:", Product_location)
+                Leaf_Depth = int(depth_text_list[k])
+                print('Depth:', Leaf_Depth)
+                Product_category = Product_location
+                Excel_name = str(Product_category + timestamp_text).replace(',', '').replace(' ', '').replace('&', '').replace('-', '').replace('>', '_').replace(':', '').replace("'", "").replace('+', '')
+                print('Excel_name:::', Excel_name)
+                Product_location_entry.delete(0, END)            
+                Product_location_entry.insert(0, Product_category) 
+                #Create table with excel name
+                cursor = mydb.cursor()
+                # Define the SQL statement to drop the table
+                drop_table_sql = f"DROP TABLE IF EXISTS {DB_table_name}"
 
-            # Commit the changes to the database
-            mydb.commit()
-            cursor.close()
-            #---------CREATE TABLE END------------------------
-        
-            driver.get(URL)  
-            i = 0    
-            try:
+                # Execute the SQL statement to drop the table
+                try:
+                    cursor.execute(drop_table_sql)
+                    print(f"Table '{item_text}' deleted successfully.")
+                except mysql.connector.Error as err:
+                    print(f"Error: {err}")
+                mydb.commit()
+                
+                #---------CREATE TABLE START------------------------
+                # Define the CREATE TABLE statement
+                create_table_sql = """
+                CREATE TABLE IF NOT EXISTS {} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    product_location VARCHAR(255),
+                    product_title VARCHAR(255),
+                    product_imgurl VARCHAR(255),
+                    product_brand VARCHAR(255),
+                    product_rating VARCHAR(255),
+                    number_reviews VARCHAR(255),
+                    product_price VARCHAR(255),
+                    Product_About_Item VARCHAR(255),
+                    product_dim VARCHAR(255),
+                    product_asin VARCHAR(255),
+                    product_modelnumber VARCHAR(255),
+                    product_department VARCHAR(255),
+                    product_dateavailable VARCHAR(255),
+                    Product_Special VARCHAR(255),
+                    product_manufacturer VARCHAR(255),
+                    product_country VARCHAR(255),
+                    upspsc_code VARCHAR(255),
+                    product_bsr VARCHAR(255),
+                    number_solds VARCHAR(255),
+                    product_specification TEXT,
+                    product_description TEXT,
+                    timestamp VARCHAR(255),
+                    Leaf_Depth VARCHAR(255)
+                );
+                """.format(DB_table_name)
+
+                # Execute the CREATE TABLE statement
+                
+                cursor.execute(create_table_sql)
+
+                # Commit the changes to the database
+                mydb.commit()
+                cursor.close()
+                #---------CREATE TABLE END------------------------
+            
+                driver.get(URL)  
+                i = 0            
                 tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
                 print(len(tables))
                 for table in tables:                            
@@ -457,7 +457,9 @@ def scrape_site():
                     Product_Date_entry.delete(0, END)            
                     Product_Date_entry.insert(0, Product_Date)                 
                     Product_timestamp_entry.delete(0, END)            
-                    Product_timestamp_entry.insert(0, timestamp)        
+                    Product_timestamp_entry.insert(0, timestamp)    
+                    Error_counter_entry.delete(0, END)            
+                    Error_counter_entry.insert(0, k)     
                     i += 1
                     Product_BSR = "#" + str(i)
                     Product_BSR_entry.delete(0, END)            
@@ -506,21 +508,25 @@ def scrape_site():
                     'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
                     'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, "timestamp": timestamp_list, "Leaf Depth": Leaf_depth_list}
                     df = pd.DataFrame(dict)
-                    df.to_csv(f'{Excel_name}.csv') 
-                    
-                    driver1.close()  
-            except Exception as e:
-                print("An error occurred:", e)
-                k += 1                
-                time.sleep(5)    
-        Error_counter_entry.delete(0, END)            
-        Error_counter_entry.insert(0, k) 
-        driver.close()       
-        print('--------------------Automation scraping is successfully finished--------------------')   
-        # Saving as EXCEL file
+                    df.to_csv(f'{Excel_name}.csv')                 
+                    driver1.close() 
+                                    
+            Error_counter_entry.delete(0, END)            
+            Error_counter_entry.insert(0, k) 
+            driver.close()       
+            print('--------------------Automation scraping is successfully finished--------------------')   
+            # Saving as EXCEL file
+            
+            print('---------------------------Saving result as an Excel--------------------------------')
+            try:
+                time.sleep(int(time_interval)*60)
+            except:
+                pass
+        except Exception as e:
+            k += 1
+            print('k::::::::::::::::', k)
+            time.sleep(3)
         
-        print('---------------------------Saving result as an Excel--------------------------------')
-        time.sleep(int(time_interval)*60)
     
 
 # defining the building GUI function
