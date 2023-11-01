@@ -80,7 +80,7 @@ def stop_function():
     stop_event.set()
     
 def scrape_site():
-    global  timestamp, Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
+    global  timestamp, Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry, Error_counter_entry
     scan_limit = Product_Depth_entry.get()
     print('type:::', type(scan_limit))
     time_interval = Product_Running_entry.get()
@@ -222,292 +222,299 @@ def scrape_site():
         
             driver.get(URL)  
             i = 0    
-            tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
-            print(len(tables))
-            for table in tables:                            
-                if (len(Product_title_list) > int(scan_limit)-1):
-                    continue
-                try:
-                    Product_URL = table.find_elements(By.TAG_NAME, 'a')[0].get_attribute('href')
-                except:
-                    Product_URL = "none"
-                print("Product_URL:", Product_URL)
-                
-                # Getting the product title
-                try:
-                    Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
-                except:
-                    Product_title = "none"
-                print("Product_title:", Product_title)
-                
-                try:
+            try:
+                tables = driver.find_elements(By.CSS_SELECTOR, Product_tables_CSS_SELECTOR)
+                print(len(tables))
+                for table in tables:                            
+                    if (len(Product_title_list) > int(scan_limit)-1):
+                        continue
                     try:
-                        Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
+                        Product_URL = table.find_elements(By.TAG_NAME, 'a')[0].get_attribute('href')
                     except:
-                        Product_price = table.find_element(By.CLASS_NAME, Product_price_Class2).text                  
-                except:
-                    Product_price = "none"
-                        
-                print("Product_price:", Product_price)
-                
-                driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
-                driver1.maximize_window()
-                driver1.get(Product_URL)  
-                        
-                print("Product_category:", Product_category) 
-                Product_URL_entry.delete(0, END)            
-                Product_URL_entry.insert(0, Product_URL)   
-                        
-                Product_title_entry.delete(0, END)            
-                Product_title_entry.insert(0, Product_title)  
-                
-                Product_Price_entry.delete(0, END)            
-                Product_Price_entry.insert(0, Product_price)    
+                        Product_URL = "none"
+                    print("Product_URL:", Product_URL)
                     
-                try:
-                    Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
-                except:
-                    Product_image_URL = "none"
-                print("Product_image_URL:", Product_image_URL)
-                Product_image_URL_entry.delete(0, END)            
-                Product_image_URL_entry.insert(0, Product_image_URL)             
-                try:
-                    Product_brand_text = driver1.find_element(By.XPATH, Product_brand_XPATH).text
-                    Product_brand = "none"
-                    if ("Brand" in Product_brand_text):
-                        Product_brand = str(Product_brand_text).replace('Brand:', '').replace(' ', '')
-                    elif ("Visit" in Product_brand_text):
-                        Product_brand = str(Product_brand_text).replace('Visit the', '').replace(' ', '').replace('Store', '')                
-                except:
-                    Product_brand = "none"  
-                Product_Brand_entry.delete(0, END)            
-                Product_Brand_entry.insert(0, Product_brand)          
-                print("Product_brand:", Product_brand)
-                
-                try:
-                    Product_Rate = driver1.find_element(By.XPATH, Product_Rate_XPATH).text
-                except:
-                    Product_Rate = "none"
-                print("Product_Rate:", Product_Rate)
-                Product_Rating_entry.delete(0, END)            
-                Product_Rating_entry.insert(0, Product_Rate)
-                
-                try:
-                    Product_Rating = driver1.find_element(By.XPATH, Product_Rating_XPATH).text
-                except:
-                    Product_Rating = "none"
-                Product_Rating = str(Product_Rating).replace('ratings', '').replace(' ', '')
-                print("Product_Rating:", Product_Rating)
-                Product_review_entry.delete(0, END)            
-                Product_review_entry.insert(0, Product_Rating)  
-                
-                try:
-                    Product_Month = driver1.find_element(By.XPATH, Product_Month_Sold_XPATH).text
-                    Product_Month = str(Product_Month).replace('bought in past month', '').replace(' ', '')
-                except:
-                    Product_Month = "none"
-                print("Product_Month:", Product_Month) 
-                
-                try:
-                    Product_About_Item = driver1.find_element(By.XPATH, Product_About_Item_XPATH).text
-                except:
-                    Product_About_Item = "none"
-                print('Product_About_Item:', Product_About_Item)
-                try:
-                    Product_specification = driver1.find_element(By.XPATH, Product_specification_XPATH).get_attribute('innerText')
-                except:
-                    Product_specification = "none"
-                print('Product_specification:', Product_specification)
-                
-                if (len(driver1.find_elements(By.ID, 'productDescription'))>0):
-                    Product_description = driver1.find_element(By.ID, 'productDescription').text
-                elif (len(driver1.find_elements(By.XPATH, '//*[@id="aplus"]'))>1):
-                    description_details = driver1.find_elements(By.XPATH, '//*[@id="aplus"]')
-                    for description_detail in description_details:
-                        description_text = description_detail.find_element(By.TAG_NAME, 'h2').text
-                        if "Description" in description_text:
-                            Product_description = description_detail.find_elements(By.TAG_NAME, 'div')[0].text
-                        else:
-                            Product_description = "none"  
-                elif (len(driver1.find_elements(By.XPATH, '//*[@id="aplusBatch"]'))>0):
-                    Product_description = driver1.find_element(By.XPATH, '//*[@id="aplusBatch"]').text               
-                else:
-                    Product_description = "none"
-                print("Product_description:", Product_description)
-                
-                if (len(driver1.find_elements(By.XPATH, '//*[@id="detailBulletsWrapper_feature_div"]'))>0):
-                    product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
-                    firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
-                    Product_ASIN = "None"
-                    Product_Dim = "None"
-                    Product_Item = "None"
-                    Product_Department = "none"
-                    Product_Date = "none"
-                    Product_Manu = "none"
-                    Product_Country = "none"
-                    Product_UPSPSC = "none" 
-                    Product_Special = "none"    
-                    for firsttable in firsttables:
-                        item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
-                        # print("item:", item)                
-                        if ("ASIN" in item):
-                            print('-------Product Details ASIN------')
-                            Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_ASIN:', Product_ASIN)                    
-                        elif ("Dimensions" in item):
-                            print('-------Product Details Dim------')
-                            Product_Dim = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Dim:', Product_Dim)
-                        elif ("Item model number" in item):
-                            print('-------Product Details modelnum------')
-                            Product_Item = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Item:', Product_Item)
-                        elif ("Department" in item):
-                            print('-------Product Details------')
-                            Product_Department = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Department:', Product_Department)
-                        elif ("Date First Available" in item):
-                            print('-------Product Details------')
-                            Product_Date = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Date:', Product_Date)
-                        elif ("Manufacturer" in item):
-                            print('-------Product Details------')
-                            Product_Manu = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Manu:', Product_Manu)
-                        elif ("Country of Origin" in item):
-                            print('-------Product Details------')
-                            Product_Country = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Country:', Product_Country)
-                        elif ("Special" in item):
-                            print('-------Product Details------')
-                            Product_Special = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_Special:', Product_Special)
-                        elif ("UPSPSC Code" in item):
-                            print('-------Product Details------')
-                            Product_UPSPSC = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
-                            print('Product_UPSPSC:', Product_UPSPSC)
-                elif (len(driver1.find_elements(By.XPATH, '//*[@id="prodDetails"]/div/div[1]'))>0):
-                    print('------------------------------')
-                    time.sleep(3)
-                    product_detail = driver1.find_element(By.XPATH, '//*[@id="productDetails_detailBullets_sections1"]/tbody')
-                    firsttables = product_detail.find_elements(By.TAG_NAME, 'tr')
-                    Product_ASIN = "None"
-                    Product_Dim = "None"
-                    Product_Item = "None"
-                    Product_Department = "none"
-                    Product_Date = "none"
-                    Product_Manu = "none"
-                    Product_Country = "none"
-                    Product_UPSPSC = "none"     
-                    Product_Special = "none"
-                    for firsttable in firsttables:
-                        item = firsttable.find_element(By.TAG_NAME, 'th').text
-                        # print("item:", item)                
-                        if ("ASIN" in item):
-                            print('-------Product Details ASIN------')
-                            Product_ASIN = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_ASIN:', Product_ASIN)                    
-                        elif ("Dimensions" in item):
-                            print('-------Product Details Dim------')
-                            Product_Dim = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Dim:', Product_Dim)
-                        elif ("Item model number" in item):
-                            print('-------Product Details modelnum------')
-                            Product_Item = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Item:', Product_Item)
-                        elif ("Department" in item):
-                            print('-------Product Details------')
-                            Product_Department = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Department:', Product_Department)
-                        elif ("Date First Available" in item):
-                            print('-------Product Details------')
-                            Product_Date = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Date:', Product_Date)
-                        elif ("Manufacturer" in item):
-                            print('-------Product Details------')
-                            Product_Manu = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Manu:', Product_Manu)
-                        elif ("Country of Origin" in item):
-                            print('-------Product Details------')
-                            Product_Country = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Country:', Product_Country)
-                        elif ("Special" in item):
-                            print('-------Product Details------')
-                            Product_Special = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_Special:', Product_Special)
-                        elif ("UPSPSC Code" in item):
-                            print('-------Product Details------')
-                            Product_UPSPSC = firsttable.find_element(By.TAG_NAME, 'td').text
-                            print('Product_UPSPSC:', Product_UPSPSC)                  
-                else:
-                    Product_ASIN = "none" 
-                    Product_Dim = "none"    
-                    Product_Item = "none"    
-                    Product_Department = "none"    
-                    Product_Date = "none"    
-                    Product_Manu = "none"    
-                    Product_Country = "none"    
-                    Product_UPSPSC = "none"   
-                    Product_Special = "none" 
-                Product_asin_entry.delete(0, END)            
-                Product_asin_entry.insert(0, Product_ASIN)  
-                Product_dimension_entry.delete(0, END)            
-                Product_dimension_entry.insert(0, Product_Dim)  
-                Product_Date_entry.delete(0, END)            
-                Product_Date_entry.insert(0, Product_Date)                 
-                Product_timestamp_entry.delete(0, END)            
-                Product_timestamp_entry.insert(0, timestamp)        
-                i += 1
-                Product_BSR = "#" + str(i)
-                Product_BSR_entry.delete(0, END)            
-                Product_BSR_entry.insert(0, Product_BSR) 
-                print('Product_BSR:', Product_BSR)                
-                print('timestamp:', timestamp)
-                Product_title_list.append(Product_title)     
-                Product_category_list.append(Product_category)        
-                Product_image_URL_list.append(Product_image_URL)
-                Product_brand_list.append(Product_brand)
-                Product_Rate_list.append(Product_Rate)
-                Product_Rating_list.append(Product_Rating)
-                Product_specification_list.append(Product_specification)
-                Product_description_list.append(Product_description)
-                Product_price_list.append(Product_price)
-                Product_Dim_list.append(Product_Dim)
-                Product_ASIN_list.append(Product_ASIN)
-                Product_Item_list.append(Product_Item)
-                Product_Department_list.append(Product_Department)
-                Product_Date_list.append(Product_Date)
-                Product_Manu_list.append(Product_Manu)
-                Product_Special_list.append(Product_Special)
-                Product_Country_list.append(Product_Country)
-                Product_UPSPSC_list.append(Product_UPSPSC)
-                Product_BSR_list.append(Product_BSR)
-                Product_Month_list.append(Product_Month)
-                Product_About_Item_list.append(Product_About_Item)
-                timestamp_list.append(timestamp)
-                Leaf_depth_list.append(Leaf_Depth)
-                
-                insert_sql = f"""INSERT INTO {DB_table_name} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description, timestamp, Leaf_Depth) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
-                insert_values = [Product_category, Product_title, Product_image_URL, Product_brand, Product_Rate, Product_Rating, Product_price, Product_About_Item, Product_Dim, Product_ASIN, 
-                                Product_Item, Product_Department, Product_Date, Product_Special, Product_Manu, Product_Country, Product_UPSPSC, Product_BSR, Product_Month, Product_specification, Product_description, timestamp, Leaf_Depth]
-                print(insert_values)
-                try:
-                    mycursor = mydb.cursor()
-                    mycursor.execute(insert_sql, insert_values)
-                    mydb.commit()
-                    print(mycursor.rowcount, "rows were inserted.")
-                except Exception as e:
-                    print("An error occurred:", str(e))
+                    # Getting the product title
+                    try:
+                        Product_title = table.find_elements(By.TAG_NAME, 'a')[1].find_elements(By.TAG_NAME, 'span')[0].text
+                    except:
+                        Product_title = "none"
+                    print("Product_title:", Product_title)
                     
-                #INSERT INTO EXCEL_NME TABLE -------------END------------------------
-                
-                dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
-                'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
-                'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, "timestamp": timestamp_list, "Leaf Depth": Leaf_depth_list}
-                df = pd.DataFrame(dict)
-                df.to_csv(f'{Excel_name}.csv') 
-                
-                driver1.close()    
+                    try:
+                        try:
+                            Product_price = table.find_element(By.CLASS_NAME, Product_price_Class1).text
+                        except:
+                            Product_price = table.find_element(By.CLASS_NAME, Product_price_Class2).text                  
+                    except:
+                        Product_price = "none"
+                            
+                    print("Product_price:", Product_price)
+                    
+                    driver1 = webdriver.Chrome(seleniumwire_options=proxy_options)
+                    driver1.maximize_window()
+                    driver1.get(Product_URL)  
+                            
+                    print("Product_category:", Product_category) 
+                    Product_URL_entry.delete(0, END)            
+                    Product_URL_entry.insert(0, Product_URL)   
+                            
+                    Product_title_entry.delete(0, END)            
+                    Product_title_entry.insert(0, Product_title)  
+                    
+                    Product_Price_entry.delete(0, END)            
+                    Product_Price_entry.insert(0, Product_price)    
+                        
+                    try:
+                        Product_image_URL = driver1.find_element(By.XPATH, Product_image_URL_XPATH).get_attribute('src')
+                    except:
+                        Product_image_URL = "none"
+                    print("Product_image_URL:", Product_image_URL)
+                    Product_image_URL_entry.delete(0, END)            
+                    Product_image_URL_entry.insert(0, Product_image_URL)             
+                    try:
+                        Product_brand_text = driver1.find_element(By.XPATH, Product_brand_XPATH).text
+                        Product_brand = "none"
+                        if ("Brand" in Product_brand_text):
+                            Product_brand = str(Product_brand_text).replace('Brand:', '').replace(' ', '')
+                        elif ("Visit" in Product_brand_text):
+                            Product_brand = str(Product_brand_text).replace('Visit the', '').replace(' ', '').replace('Store', '')                
+                    except:
+                        Product_brand = "none"  
+                    Product_Brand_entry.delete(0, END)            
+                    Product_Brand_entry.insert(0, Product_brand)          
+                    print("Product_brand:", Product_brand)
+                    
+                    try:
+                        Product_Rate = driver1.find_element(By.XPATH, Product_Rate_XPATH).text
+                    except:
+                        Product_Rate = "none"
+                    print("Product_Rate:", Product_Rate)
+                    Product_Rating_entry.delete(0, END)            
+                    Product_Rating_entry.insert(0, Product_Rate)
+                    
+                    try:
+                        Product_Rating = driver1.find_element(By.XPATH, Product_Rating_XPATH).text
+                    except:
+                        Product_Rating = "none"
+                    Product_Rating = str(Product_Rating).replace('ratings', '').replace(' ', '')
+                    print("Product_Rating:", Product_Rating)
+                    Product_review_entry.delete(0, END)            
+                    Product_review_entry.insert(0, Product_Rating)  
+                    
+                    try:
+                        Product_Month = driver1.find_element(By.XPATH, Product_Month_Sold_XPATH).text
+                        Product_Month = str(Product_Month).replace('bought in past month', '').replace(' ', '')
+                    except:
+                        Product_Month = "none"
+                    print("Product_Month:", Product_Month) 
+                    
+                    try:
+                        Product_About_Item = driver1.find_element(By.XPATH, Product_About_Item_XPATH).text
+                    except:
+                        Product_About_Item = "none"
+                    print('Product_About_Item:', Product_About_Item)
+                    try:
+                        Product_specification = driver1.find_element(By.XPATH, Product_specification_XPATH).get_attribute('innerText')
+                    except:
+                        Product_specification = "none"
+                    print('Product_specification:', Product_specification)
+                    
+                    if (len(driver1.find_elements(By.ID, 'productDescription'))>0):
+                        Product_description = driver1.find_element(By.ID, 'productDescription').text
+                    elif (len(driver1.find_elements(By.XPATH, '//*[@id="aplus"]'))>1):
+                        description_details = driver1.find_elements(By.XPATH, '//*[@id="aplus"]')
+                        for description_detail in description_details:
+                            description_text = description_detail.find_element(By.TAG_NAME, 'h2').text
+                            if "Description" in description_text:
+                                Product_description = description_detail.find_elements(By.TAG_NAME, 'div')[0].text
+                            else:
+                                Product_description = "none"  
+                    elif (len(driver1.find_elements(By.XPATH, '//*[@id="aplusBatch"]'))>0):
+                        Product_description = driver1.find_element(By.XPATH, '//*[@id="aplusBatch"]').text               
+                    else:
+                        Product_description = "none"
+                    print("Product_description:", Product_description)
+                    
+                    if (len(driver1.find_elements(By.XPATH, '//*[@id="detailBulletsWrapper_feature_div"]'))>0):
+                        product_detail = driver1.find_element(By.XPATH, '//*[@id="detailBullets_feature_div"]/ul')
+                        firsttables = product_detail.find_elements(By.CLASS_NAME, 'a-list-item')
+                        Product_ASIN = "None"
+                        Product_Dim = "None"
+                        Product_Item = "None"
+                        Product_Department = "none"
+                        Product_Date = "none"
+                        Product_Manu = "none"
+                        Product_Country = "none"
+                        Product_UPSPSC = "none" 
+                        Product_Special = "none"    
+                        for firsttable in firsttables:
+                            item = firsttable.find_element(By.CLASS_NAME, 'a-text-bold').text
+                            # print("item:", item)                
+                            if ("ASIN" in item):
+                                print('-------Product Details ASIN------')
+                                Product_ASIN = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_ASIN:', Product_ASIN)                    
+                            elif ("Dimensions" in item):
+                                print('-------Product Details Dim------')
+                                Product_Dim = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Dim:', Product_Dim)
+                            elif ("Item model number" in item):
+                                print('-------Product Details modelnum------')
+                                Product_Item = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Item:', Product_Item)
+                            elif ("Department" in item):
+                                print('-------Product Details------')
+                                Product_Department = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Department:', Product_Department)
+                            elif ("Date First Available" in item):
+                                print('-------Product Details------')
+                                Product_Date = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Date:', Product_Date)
+                            elif ("Manufacturer" in item):
+                                print('-------Product Details------')
+                                Product_Manu = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Manu:', Product_Manu)
+                            elif ("Country of Origin" in item):
+                                print('-------Product Details------')
+                                Product_Country = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Country:', Product_Country)
+                            elif ("Special" in item):
+                                print('-------Product Details------')
+                                Product_Special = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_Special:', Product_Special)
+                            elif ("UPSPSC Code" in item):
+                                print('-------Product Details------')
+                                Product_UPSPSC = firsttable.find_elements(By.TAG_NAME, 'span')[1].text
+                                print('Product_UPSPSC:', Product_UPSPSC)
+                    elif (len(driver1.find_elements(By.XPATH, '//*[@id="prodDetails"]/div/div[1]'))>0):
+                        print('------------------------------')
+                        time.sleep(3)
+                        product_detail = driver1.find_element(By.XPATH, '//*[@id="productDetails_detailBullets_sections1"]/tbody')
+                        firsttables = product_detail.find_elements(By.TAG_NAME, 'tr')
+                        Product_ASIN = "None"
+                        Product_Dim = "None"
+                        Product_Item = "None"
+                        Product_Department = "none"
+                        Product_Date = "none"
+                        Product_Manu = "none"
+                        Product_Country = "none"
+                        Product_UPSPSC = "none"     
+                        Product_Special = "none"
+                        for firsttable in firsttables:
+                            item = firsttable.find_element(By.TAG_NAME, 'th').text
+                            # print("item:", item)                
+                            if ("ASIN" in item):
+                                print('-------Product Details ASIN------')
+                                Product_ASIN = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_ASIN:', Product_ASIN)                    
+                            elif ("Dimensions" in item):
+                                print('-------Product Details Dim------')
+                                Product_Dim = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Dim:', Product_Dim)
+                            elif ("Item model number" in item):
+                                print('-------Product Details modelnum------')
+                                Product_Item = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Item:', Product_Item)
+                            elif ("Department" in item):
+                                print('-------Product Details------')
+                                Product_Department = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Department:', Product_Department)
+                            elif ("Date First Available" in item):
+                                print('-------Product Details------')
+                                Product_Date = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Date:', Product_Date)
+                            elif ("Manufacturer" in item):
+                                print('-------Product Details------')
+                                Product_Manu = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Manu:', Product_Manu)
+                            elif ("Country of Origin" in item):
+                                print('-------Product Details------')
+                                Product_Country = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Country:', Product_Country)
+                            elif ("Special" in item):
+                                print('-------Product Details------')
+                                Product_Special = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_Special:', Product_Special)
+                            elif ("UPSPSC Code" in item):
+                                print('-------Product Details------')
+                                Product_UPSPSC = firsttable.find_element(By.TAG_NAME, 'td').text
+                                print('Product_UPSPSC:', Product_UPSPSC)                  
+                    else:
+                        Product_ASIN = "none" 
+                        Product_Dim = "none"    
+                        Product_Item = "none"    
+                        Product_Department = "none"    
+                        Product_Date = "none"    
+                        Product_Manu = "none"    
+                        Product_Country = "none"    
+                        Product_UPSPSC = "none"   
+                        Product_Special = "none" 
+                    Product_asin_entry.delete(0, END)            
+                    Product_asin_entry.insert(0, Product_ASIN)  
+                    Product_dimension_entry.delete(0, END)            
+                    Product_dimension_entry.insert(0, Product_Dim)  
+                    Product_Date_entry.delete(0, END)            
+                    Product_Date_entry.insert(0, Product_Date)                 
+                    Product_timestamp_entry.delete(0, END)            
+                    Product_timestamp_entry.insert(0, timestamp)        
+                    i += 1
+                    Product_BSR = "#" + str(i)
+                    Product_BSR_entry.delete(0, END)            
+                    Product_BSR_entry.insert(0, Product_BSR) 
+                    print('Product_BSR:', Product_BSR)                
+                    print('timestamp:', timestamp)
+                    Product_title_list.append(Product_title)     
+                    Product_category_list.append(Product_category)        
+                    Product_image_URL_list.append(Product_image_URL)
+                    Product_brand_list.append(Product_brand)
+                    Product_Rate_list.append(Product_Rate)
+                    Product_Rating_list.append(Product_Rating)
+                    Product_specification_list.append(Product_specification)
+                    Product_description_list.append(Product_description)
+                    Product_price_list.append(Product_price)
+                    Product_Dim_list.append(Product_Dim)
+                    Product_ASIN_list.append(Product_ASIN)
+                    Product_Item_list.append(Product_Item)
+                    Product_Department_list.append(Product_Department)
+                    Product_Date_list.append(Product_Date)
+                    Product_Manu_list.append(Product_Manu)
+                    Product_Special_list.append(Product_Special)
+                    Product_Country_list.append(Product_Country)
+                    Product_UPSPSC_list.append(Product_UPSPSC)
+                    Product_BSR_list.append(Product_BSR)
+                    Product_Month_list.append(Product_Month)
+                    Product_About_Item_list.append(Product_About_Item)
+                    timestamp_list.append(timestamp)
+                    Leaf_depth_list.append(Leaf_Depth)
+                    
+                    insert_sql = f"""INSERT INTO {DB_table_name} (product_location, product_title, product_imgurl, product_brand, product_rating, number_reviews, product_price, Product_About_Item, product_dim, product_asin, product_modelnumber, product_department, product_dateavailable, product_special, product_manufacturer, product_country, upspsc_code, product_bsr,  number_solds, product_specification, product_description, timestamp, Leaf_Depth) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+                    insert_values = [Product_category, Product_title, Product_image_URL, Product_brand, Product_Rate, Product_Rating, Product_price, Product_About_Item, Product_Dim, Product_ASIN, 
+                                    Product_Item, Product_Department, Product_Date, Product_Special, Product_Manu, Product_Country, Product_UPSPSC, Product_BSR, Product_Month, Product_specification, Product_description, timestamp, Leaf_Depth]
+                    print(insert_values)
+                    try:
+                        mycursor = mydb.cursor()
+                        mycursor.execute(insert_sql, insert_values)
+                        mydb.commit()
+                        print(mycursor.rowcount, "rows were inserted.")
+                    except Exception as e:
+                        print("An error occurred:", str(e))
+                        
+                    #INSERT INTO EXCEL_NME TABLE -------------END------------------------
+                    
+                    dict = {'Product_Location_in_Tree': Product_category_list, 'Product_title': Product_title_list, 'Product_image_URL': Product_image_URL_list, 'Product_brand': Product_brand_list,'Product_Rating': Product_Rate_list, 'Number_of_Customer_review': Product_Rating_list, 'Product_price': Product_price_list, 
+                    'Product_About_Item': Product_About_Item_list, 'Product_Dim': Product_Dim_list, 'Product_ASIN': Product_ASIN_list, 'Product_Item_Model_number': Product_Item_list, 'Product_Department': Product_Department_list, 'Product_Date_First_Available': Product_Date_list, 'Product_Special': Product_Special_list,
+                    'Product_manufacturer': Product_Manu_list, 'Country_Origin': Product_Country_list, 'UPSPSC_Code': Product_UPSPSC_list, 'Product_BSR': Product_BSR_list, 'Number of sold of in a month': Product_Month_list, 'Product Specification': Product_specification_list, "Product Description": Product_description_list, "timestamp": timestamp_list, "Leaf Depth": Leaf_depth_list}
+                    df = pd.DataFrame(dict)
+                    df.to_csv(f'{Excel_name}.csv') 
+                    
+                    driver1.close()  
+            except Exception as e:
+                print("An error occurred:", e)
+                k += 1                
+                time.sleep(5)    
+        Error_counter_entry.delete(0, END)            
+        Error_counter_entry.insert(0, k) 
         driver.close()       
         print('--------------------Automation scraping is successfully finished--------------------')   
         # Saving as EXCEL file
@@ -519,7 +526,7 @@ def scrape_site():
 # defining the building GUI function
 
 def BuildingGUI():
-    global Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry
+    global Product_location_entry, Product_URL_entry, Product_Running_entry, Product_title_entry, Product_Price_entry, Product_Brand_entry, Product_Rating_entry, Product_review_entry, Product_BSR_entry, Product_asin_entry, Product_image_URL_entry, Product_dimension_entry, Product_Date_entry, Product_Depth_entry, Product_timestamp_entry, Error_counter_entry
     # Create a window object
     try:
         df3 = pd.read_csv("configuration.csv")
@@ -958,7 +965,7 @@ def BuildingGUI():
     
     canvas.create_text(
         400.0,
-        530.0,
+        590.0,
         anchor="nw",
         text="Product Date",
         fill="#000000",
@@ -973,15 +980,38 @@ def BuildingGUI():
     )
 
     Product_Date_entry.place(
-        x=550.0,
-        y=523,
-        width=400.0,
+        x=500.0,
+        y=583,
+        width=150.0,
         height=30.0
     )   
     
     canvas.create_text(
-        400.0,
+        680.0,
         590.0,
+        anchor="nw",
+        text="Error Counter",
+        fill="#000000",
+        font=("Roboto Medium", 14 * -1)
+    )
+    
+    Error_counter_entry = Entry(
+        bd=0,
+        bg="#ebe6e6",
+        fg="#000000",
+        highlightthickness=0
+    )
+
+    Error_counter_entry.place(
+        x=800.0,
+        y=583,
+        width=150.0,
+        height=30.0
+    )  
+    
+    canvas.create_text(
+        400.0,
+        530.0,
         anchor="nw",
         text="TimeStamp",
         fill="#000000",
@@ -997,7 +1027,7 @@ def BuildingGUI():
 
     Product_timestamp_entry.place(
         x=550.0,
-        y=583,
+        y=523,
         width=400.0,
         height=30.0
     )
