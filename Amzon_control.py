@@ -691,7 +691,7 @@ def BuildingGUI():
     # Configure the scrollbar to work with the Treeview
     
     # Getting the treeview text when it's selected
-    tree.tag_configure("custom_font", font=("Comic Sans MS", 12), foreground="white")
+    tree.tag_configure("custom_font", font=("American Typewriter", 12), foreground="white")
     def open_all_items(tree):
     # Get all item IDs in the Treeview
         for item in get_all_children(tree, ""):
